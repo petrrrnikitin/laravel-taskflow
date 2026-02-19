@@ -5,6 +5,7 @@ namespace App\Repositories\Eloquent;
 use App\DTO\Project\CreateProjectDTO;
 use App\DTO\Project\UpdateProjectDTO;
 use App\Enums\ProjectRole;
+use App\Enums\ProjectStatus;
 use App\Models\Project;
 use App\Models\User;
 use App\Repositories\Contracts\ProjectRepositoryInterface;
@@ -48,6 +49,13 @@ class EloquentProjectRepository implements ProjectRepositoryInterface
             'name'        => $dto->name,
             'description' => $dto->description,
         ]);
+
+        return $project->fresh();
+    }
+
+    public function archive(Project $project): Project
+    {
+        $project->update(['status' => ProjectStatus::Archived]);
 
         return $project->fresh();
     }

@@ -43,8 +43,8 @@ class TaskResource extends JsonResource
             'due_date'    => $this->due_date?->toDateString(),
             'creator'     => new UserResource($this->whenLoaded('creator')),
             'assignee'    => new UserResource($this->whenLoaded('assignee')),
-            'created_at'  => $this->created_at,
-            'updated_at'  => $this->updated_at,
+            'created_at'  => $this->created_at->toIso8601String(),
+            'updated_at'  => $this->updated_at->toIso8601String(),
         ];
     }
 }

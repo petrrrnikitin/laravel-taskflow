@@ -18,5 +18,7 @@ interface ProjectRepositoryInterface
 
     public function update(Project $project, UpdateProjectDTO $dto): Project;
 
+    public function archive(Project $project): Project;
+
     public function delete(Project $project): void;
 }

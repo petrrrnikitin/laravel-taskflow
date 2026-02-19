@@ -51,12 +51,11 @@ class AuthController extends Controller
     )]
     public function register(RegisterRequest $request): JsonResponse
     {
-        $user = $this->authService->register(RegisterDTO::fromRequest($request));
-        $token = $user->createToken('api')->plainTextToken;
+        $result = $this->authService->register(RegisterDTO::fromRequest($request));
 
         return response()->json([
-            'user'  => new UserResource($user),
-            'token' => $token,
+            'user'  => new UserResource($result->user),
+            'token' => $result->token,
         ], 201);
     }
 
@@ -91,11 +90,11 @@ class AuthController extends Controller
     )]
     public function login(LoginRequest $request): JsonResponse
     {
-        $token = $this->authService->login(LoginDTO::fromRequest($request));
+        $result = $this->authService->login(LoginDTO::fromRequest($request));
 
         return response()->json([
-            'user'  => new UserResource(auth()->user()),
-            'token' => $token,
+            'user'  => new UserResource($result->user),
+            'token' => $result->token,
         ]);
     }
 

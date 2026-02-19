@@ -11,7 +11,6 @@ use App\Http\Requests\Task\UpdateTaskRequest;
 use App\Http\Resources\TaskResource;
 use App\Models\Project;
 use App\Models\Task;
-use App\Repositories\Contracts\TaskRepositoryInterface;
 use App\Services\TaskService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -21,7 +20,6 @@ class TaskController extends Controller
 {
     public function __construct(
         private readonly TaskService $taskService,
-        private readonly TaskRepositoryInterface $tasks,
     ) {}
 
     #[OA\Get(
@@ -44,7 +42,7 @@ class TaskController extends Controller
     {
         $this->authorize('view', $project);
 
-        return TaskResource::collection($this->tasks->allForProject($project));
+        return TaskResource::collection($this->taskService->getForProject($project));
     }
 
     #[OA\Post(
@@ -79,7 +77,7 @@ class TaskController extends Controller
 
         $task = $this->taskService->create(CreateTaskDTO::fromRequest($request, $project->id));
 
-        return new TaskResource($task)->response()->setStatusCode(201);
+        return (new TaskResource($task))->response()->setStatusCode(201);
     }
 
     #[OA\Get(

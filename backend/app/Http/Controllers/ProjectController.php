@@ -8,7 +8,6 @@ use App\Http\Requests\Project\CreateProjectRequest;
 use App\Http\Requests\Project\UpdateProjectRequest;
 use App\Http\Resources\ProjectResource;
 use App\Models\Project;
-use App\Repositories\Contracts\ProjectRepositoryInterface;
 use App\Services\ProjectService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -19,7 +18,6 @@ class ProjectController extends Controller
 {
     public function __construct(
         private readonly ProjectService $projectService,
-        private readonly ProjectRepositoryInterface $projects,
     ) {}
 
     #[OA\Get(
@@ -45,9 +43,7 @@ class ProjectController extends Controller
     )]
     public function index(Request $request): AnonymousResourceCollection
     {
-        $projects = $this->projects->allForUser($request->user());
-
-        return ProjectResource::collection($projects);
+        return ProjectResource::collection($this->projectService->getForUser($request->user()));
     }
 
     #[OA\Post(
@@ -74,7 +70,7 @@ class ProjectController extends Controller
     {
         $project = $this->projectService->create(CreateProjectDTO::fromRequest($request));
 
-        return new ProjectResource($project->load('owner'))
+        return (new ProjectResource($project->load('owner')))
             ->response()
             ->setStatusCode(201);
     }
@@ -91,7 +87,7 @@ class ProjectController extends Controller
             new OA\Response(response: 404, description: 'Not found'),
         ],
     )]
-    public function show(Request $request, Project $project): ProjectResource
+    public function show(Project $project): ProjectResource
     {
         $this->authorize('view', $project);
 
@@ -140,13 +136,11 @@ class ProjectController extends Controller
             new OA\Response(response: 403, description: 'Forbidden'),
         ],
     )]
-    public function archive(Request $request, Project $project): ProjectResource
+    public function archive(Project $project): ProjectResource
     {
         $this->authorize('update', $project);
 
-        $project = $this->projectService->archive($project);
-
-        return new ProjectResource($project->load('owner'));
+        return new ProjectResource($this->projectService->archive($project)->load('owner'));
     }
 
     #[OA\Delete(
@@ -160,7 +154,7 @@ class ProjectController extends Controller
             new OA\Response(response: 403, description: 'Forbidden'),
         ],
     )]
-    public function destroy(Request $request, Project $project): JsonResponse
+    public function destroy(Project $project): JsonResponse
     {
         $this->authorize('delete', $project);
 

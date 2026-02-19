@@ -23,6 +23,11 @@ x-php-base: &php_base
     - REDIS_PORT
     - QUEUE_CONNECTION
     - CACHE_STORE
+    - MAIL_MAILER
+    - MAIL_HOST
+    - MAIL_PORT
+    - MAIL_FROM_ADDRESS
+    - MAIL_FROM_NAME
   volumes:
     - *backend_volume
   depends_on:
@@ -80,10 +85,22 @@ services:
     networks:
       - taskflow
 
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: taskflow_mailpit
+    restart: unless-stopped
+    ports:
+      - "8025:8025"
+      - "1025:1025"
+    networks:
+      - taskflow
+
   queue:
     <<: *php_worker
     container_name: taskflow_queue
     command: php artisan queue:work --sleep=3 --tries=3 --timeout=90
+    depends_on:
+      - mailpit
 
 networks:
   taskflow:

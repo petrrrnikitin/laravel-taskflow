@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\DTO\Auth\AuthResultDTO;
 use App\DTO\Auth\LoginDTO;
 use App\DTO\Auth\RegisterDTO;
 use App\Models\User;
@@ -10,21 +11,24 @@ use Illuminate\Auth\AuthenticationException;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 
-class AuthService
+readonly class AuthService
 {
     public function __construct(
-        private readonly UserRepositoryInterface $users,
+        private UserRepositoryInterface $users,
     ) {}
 
-    public function register(RegisterDTO $dto): User
+    public function register(RegisterDTO $dto): AuthResultDTO
     {
-        return $this->users->create($dto);
+        $user  = $this->users->create($dto);
+        $token = $user->createToken('api')->plainTextToken;
+
+        return new AuthResultDTO($user, $token);
     }
 
     /**
      * @throws AuthenticationException
      */
-    public function login(LoginDTO $dto): string
+    public function login(LoginDTO $dto): AuthResultDTO
     {
         $user = $this->users->findByEmail($dto->email);
 
@@ -35,7 +39,9 @@ class AuthService
         Auth::login($user);
         $user->tokens()->delete();
 
-        return $user->createToken('api')->plainTextToken;
+        $token = $user->createToken('api')->plainTextToken;
+
+        return new AuthResultDTO($user, $token);
     }
 
     public function logout(User $user): void

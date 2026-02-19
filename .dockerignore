@@ -1,0 +1,5 @@
+backend/storage/framework/testing/
+backend/storage/logs/
+backend/storage/api-docs/
+backend/.env
+docker/nginx/
