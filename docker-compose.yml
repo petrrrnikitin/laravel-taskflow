@@ -4,14 +4,15 @@ x-php-base: &php_base
   restart: unless-stopped
   working_dir: /var/www
   build:
-    context: ./backend
-    dockerfile: ../docker/php/Dockerfile
+    context: .
+    dockerfile: ./docker/php/Dockerfile
   environment:
     - APP_KEY
     - APP_ENV
     - APP_DEBUG
     - APP_URL
     - FRONTEND_URL
+    - L5_SWAGGER_GENERATE_ALWAYS
     - DB_CONNECTION
     - DB_HOST
     - DB_PORT
