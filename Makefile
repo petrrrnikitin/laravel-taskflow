@@ -1,7 +1,7 @@
 APP_CONTAINER = taskflow_app
 ARTISAN       = docker exec --user www-data $(APP_CONTAINER) php artisan
 
-.PHONY: up down restart build rebuild migrate migration
+.PHONY: up down restart build rebuild migrate migration ide-helper
 
 up:
 	docker compose up -d
@@ -25,4 +25,9 @@ migration:
 ifndef name
 	$(error Usage: make migration name=create_something_table)
 endif
-	$(ARTISAN) make:migration $(name)
+	docker exec $(APP_CONTAINER) php artisan make:migration $(name)
+
+ide-helper:
+	docker exec $(APP_CONTAINER) php artisan ide-helper:generate --no-interaction
+	docker exec $(APP_CONTAINER) php artisan ide-helper:models --write --no-interaction
+	docker exec $(APP_CONTAINER) php artisan ide-helper:meta --no-interaction
