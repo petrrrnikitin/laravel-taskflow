@@ -4,12 +4,17 @@ namespace App\Models;
 
 use App\Enums\TaskPriority;
 use App\Enums\TaskStatus;
+use App\Observers\TaskObserver;
 use Eloquent;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 
+#[ObservedBy([TaskObserver::class])]
 /**
  * @property int $id
  * @property int $project_id
@@ -23,6 +28,10 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property string|null $search_vector
+ * @property-read Collection<int, Comment> $comments
+ * @property-read int|null $comments_count
+ * @property-read Collection<int, ActivityLog> $activityLogs
+ * @property-read int|null $activity_logs_count
  * @property-read User|null $assignee
  * @property-read User|null $creator
  * @property-read Project|null $project
@@ -63,6 +72,16 @@ class Task extends Model
             'priority' => TaskPriority::class,
             'due_date' => 'date',
         ];
+    }
+
+    public function comments(): HasMany
+    {
+        return $this->hasMany(Comment::class);
+    }
+
+    public function activityLogs(): HasMany
+    {
+        return $this->hasMany(ActivityLog::class);
     }
 
     public function project(): BelongsTo

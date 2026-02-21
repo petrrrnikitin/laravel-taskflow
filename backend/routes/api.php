@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ActivityController;
 use App\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\CommentController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\ProjectMemberController;
@@ -28,6 +29,11 @@ Route::prefix('v1')->group(function () {
             Route::get('tasks', [TaskController::class, 'index']);
             Route::patch('tasks/{task}/status', [TaskController::class, 'changeStatus']);
             Route::get('tasks/{task}/activity', [ActivityController::class, 'taskActivity']);
+
+            Route::get('tasks/{task}/comments', [CommentController::class, 'index']);
+            Route::post('tasks/{task}/comments', [CommentController::class, 'store']);
+            Route::patch('tasks/{task}/comments/{comment}', [CommentController::class, 'update']);
+            Route::delete('tasks/{task}/comments/{comment}', [CommentController::class, 'destroy']);
 
             Route::get('members', [ProjectMemberController::class, 'index']);
             Route::post('members', [ProjectMemberController::class, 'store']);

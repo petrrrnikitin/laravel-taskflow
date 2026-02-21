@@ -3,14 +3,18 @@
 namespace App\Models;
 
 use App\Enums\ProjectStatus;
+use App\Observers\ProjectObserver;
 use Eloquent;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 
+#[ObservedBy([ProjectObserver::class])]
 /**
  * @property int $id
  * @property int $owner_id
@@ -19,6 +23,8 @@ use Illuminate\Support\Carbon;
  * @property ProjectStatus $status
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
+ * @property-read Collection<int, Task> $tasks
+ * @property-read int|null $tasks_count
  * @property-read Collection<int, User> $members
  * @property-read int|null $members_count
  * @property-read User|null $owner
@@ -48,6 +54,11 @@ class Project extends Model
         return [
             'status' => ProjectStatus::class,
         ];
+    }
+
+    public function tasks(): HasMany
+    {
+        return $this->hasMany(Task::class);
     }
 
     public function owner(): BelongsTo

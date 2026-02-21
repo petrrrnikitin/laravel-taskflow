@@ -3,12 +3,14 @@
 namespace App\Providers;
 
 use App\Repositories\Contracts\ActivityLogRepositoryInterface;
+use App\Repositories\Contracts\CommentRepositoryInterface;
 use App\Repositories\Contracts\NotificationRepositoryInterface;
 use App\Repositories\Contracts\ProjectMemberRepositoryInterface;
 use App\Repositories\Contracts\ProjectRepositoryInterface;
 use App\Repositories\Contracts\TaskRepositoryInterface;
 use App\Repositories\Contracts\UserRepositoryInterface;
 use App\Repositories\Eloquent\EloquentActivityLogRepository;
+use App\Repositories\Eloquent\EloquentCommentRepository;
 use App\Repositories\Eloquent\EloquentNotificationRepository;
 use App\Repositories\Eloquent\EloquentProjectMemberRepository;
 use App\Repositories\Eloquent\EloquentProjectRepository;
@@ -24,6 +26,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(ProjectRepositoryInterface::class, EloquentProjectRepository::class);
         $this->app->bind(ProjectMemberRepositoryInterface::class, EloquentProjectMemberRepository::class);
         $this->app->bind(TaskRepositoryInterface::class, EloquentTaskRepository::class);
+        $this->app->bind(CommentRepositoryInterface::class, EloquentCommentRepository::class);
         $this->app->bind(ActivityLogRepositoryInterface::class, EloquentActivityLogRepository::class);
         $this->app->bind(NotificationRepositoryInterface::class, EloquentNotificationRepository::class);
     }
