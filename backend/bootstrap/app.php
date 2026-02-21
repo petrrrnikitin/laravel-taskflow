@@ -1,6 +1,10 @@
 <?php
 
-use Illuminate\Auth\Access\AuthorizationException;
+use App\Exceptions\CannotRemoveOwnerException;
+use App\Exceptions\InviteeNotFoundException;
+use App\Exceptions\MemberAlreadyExistsException;
+use App\Http\Middleware\EnsureUserBelongsToProject;
+use App\Http\Middleware\ForceJsonResponse;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Application;
@@ -17,15 +21,17 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        $middleware->api(prepend: [
+            ForceJsonResponse::class,
+        ]);
+
+        $middleware->alias([
+            'project.member' => EnsureUserBelongsToProject::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->render(function (AuthenticationException $e): JsonResponse {
             return response()->json(['message' => 'Unauthenticated.'], 401);
-        });
-
-        $exceptions->render(function (AuthorizationException $e): JsonResponse {
-            return response()->json(['message' => $e->getMessage() ?: 'You do not have permission to perform this action.'], 403);
         });
 
         $exceptions->render(function (ModelNotFoundException $e): JsonResponse {
@@ -38,5 +44,17 @@ return Application::configure(basePath: dirname(__DIR__))
                 'message' => 'The given data was invalid.',
                 'errors'  => $e->errors(),
             ], 422);
+        });
+
+        $exceptions->render(function (InviteeNotFoundException $e): JsonResponse {
+            return response()->json(['message' => $e->getMessage()], 404);
+        });
+
+        $exceptions->render(function (MemberAlreadyExistsException $e): JsonResponse {
+            return response()->json(['message' => $e->getMessage()], 409);
+        });
+
+        $exceptions->render(function (CannotRemoveOwnerException $e): JsonResponse {
+            return response()->json(['message' => $e->getMessage()], 422);
         });
     })->create();

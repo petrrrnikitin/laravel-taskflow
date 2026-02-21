@@ -22,4 +22,9 @@ class EloquentUserRepository implements UserRepositoryInterface
     {
         return User::query()->where('email', $email)->first();
     }
+
+    public function findById(int $id): ?User
+    {
+        return User::query()->find($id);
+    }
 }

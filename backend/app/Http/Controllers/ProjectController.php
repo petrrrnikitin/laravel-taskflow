@@ -56,7 +56,12 @@ class ProjectController extends Controller
                 required: ['name'],
                 properties: [
                     new OA\Property(property: 'name', type: 'string', example: 'My Project'),
-                    new OA\Property(property: 'description', type: 'string', nullable: true, example: 'Project description'),
+                    new OA\Property(
+                        property : 'description',
+                        type : 'string',
+                        example : 'Project description',
+                        nullable : true
+                    ),
                 ],
             ),
         ),
@@ -70,7 +75,7 @@ class ProjectController extends Controller
     {
         $project = $this->projectService->create(CreateProjectDTO::fromRequest($request));
 
-        return (new ProjectResource($project->load('owner')))
+        return new ProjectResource($project->load('owner'))
             ->response()
             ->setStatusCode(201);
     }

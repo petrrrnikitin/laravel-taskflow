@@ -4,7 +4,18 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use OpenApi\Attributes as OA;
 
+#[OA\Schema(
+    schema: 'ActivityLogResource',
+    properties: [
+        new OA\Property(property: 'id', type: 'integer', example: 1),
+        new OA\Property(property: 'action', type: 'string', enum: ['created', 'updated', 'status_changed', 'assigned', 'deleted'], example: 'created'),
+        new OA\Property(property: 'properties', type: 'object', nullable: true),
+        new OA\Property(property: 'actor', ref: '#/components/schemas/UserResource'),
+        new OA\Property(property: 'created_at', type: 'string', format: 'date-time'),
+    ],
+)]
 class ActivityLogResource extends JsonResource
 {
     public function toArray(Request $request): array
