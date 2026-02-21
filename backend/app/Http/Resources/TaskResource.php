@@ -23,6 +23,7 @@ use OpenApi\Attributes as OA;
         new OA\Property(
             property : 'due_date', type : 'string', format : 'date', example : '2026-03-01', nullable : true
         ),
+        new OA\Property(property: 'project', ref: '#/components/schemas/ProjectResource', nullable: true),
         new OA\Property(property: 'creator', ref: '#/components/schemas/UserResource', nullable: true),
         new OA\Property(property: 'assignee', ref: '#/components/schemas/UserResource', nullable: true),
         new OA\Property(property: 'created_at', type: 'string', format: 'date-time'),
@@ -41,6 +42,7 @@ class TaskResource extends JsonResource
             'status'      => $this->status,
             'priority'    => $this->priority,
             'due_date'    => $this->due_date?->toDateString(),
+            'project'     => new ProjectResource($this->whenLoaded('project')),
             'creator'     => new UserResource($this->whenLoaded('creator')),
             'assignee'    => new UserResource($this->whenLoaded('assignee')),
             'created_at'  => $this->created_at->toIso8601String(),

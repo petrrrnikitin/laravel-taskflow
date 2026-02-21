@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\DTO\Task\CreateTaskDTO;
+use App\DTO\Task\SearchTaskDTO;
 use App\DTO\Task\UpdateTaskDTO;
 use App\Enums\TaskStatus;
 use App\Events\TaskAssigned;
@@ -11,7 +12,9 @@ use App\Events\TaskStatusChanged;
 use App\Events\TaskUpdated;
 use App\Models\Project;
 use App\Models\Task;
+use App\Models\User;
 use App\Repositories\Contracts\TaskRepositoryInterface;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Auth;
 
@@ -24,6 +27,11 @@ readonly class TaskService
     public function getForProject(Project $project): Collection
     {
         return $this->tasks->allForProject($project);
+    }
+
+    public function search(User $user, SearchTaskDTO $dto): LengthAwarePaginator
+    {
+        return $this->tasks->search($user, $dto);
     }
 
     public function create(CreateTaskDTO $dto): Task

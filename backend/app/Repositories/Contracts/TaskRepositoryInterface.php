@@ -3,15 +3,20 @@
 namespace App\Repositories\Contracts;
 
 use App\DTO\Task\CreateTaskDTO;
+use App\DTO\Task\SearchTaskDTO;
 use App\DTO\Task\UpdateTaskDTO;
 use App\Enums\TaskStatus;
 use App\Models\Project;
 use App\Models\Task;
+use App\Models\User;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
 
 interface TaskRepositoryInterface
 {
     public function allForProject(Project $project): Collection;
+
+    public function search(User $user, SearchTaskDTO $dto): LengthAwarePaginator;
 
     public function findById(int $id): ?Task;
 
