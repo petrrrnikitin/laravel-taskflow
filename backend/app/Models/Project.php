@@ -25,6 +25,8 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $updated_at
  * @property-read Collection<int, Task> $tasks
  * @property-read int|null $tasks_count
+ * @property-read Collection<int, Report> $reports
+ * @property-read int|null $reports_count
  * @property-read Collection<int, User> $members
  * @property-read int|null $members_count
  * @property-read User|null $owner
@@ -59,6 +61,11 @@ class Project extends Model
     public function tasks(): HasMany
     {
         return $this->hasMany(Task::class);
+    }
+
+    public function reports(): HasMany
+    {
+        return $this->hasMany(Report::class);
     }
 
     public function owner(): BelongsTo

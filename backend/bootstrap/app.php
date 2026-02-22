@@ -3,6 +3,7 @@
 use App\Exceptions\CannotRemoveOwnerException;
 use App\Exceptions\InviteeNotFoundException;
 use App\Exceptions\MemberAlreadyExistsException;
+use App\Exceptions\ReportNotReadyException;
 use App\Http\Middleware\EnsureUserBelongsToProject;
 use App\Http\Middleware\ForceJsonResponse;
 use Illuminate\Auth\AuthenticationException;
@@ -56,5 +57,9 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $exceptions->render(function (CannotRemoveOwnerException $e): JsonResponse {
             return response()->json(['message' => $e->getMessage()], 422);
+        });
+
+        $exceptions->render(function (ReportNotReadyException $e): JsonResponse {
+            return response()->json(['message' => $e->getMessage()], 409);
         });
     })->create();

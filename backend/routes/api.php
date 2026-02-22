@@ -7,6 +7,7 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\ProjectMemberController;
 use App\Http\Controllers\TaskController;
+use App\Http\Controllers\ReportController;
 use App\Http\Controllers\TaskSearchController;
 use Illuminate\Support\Facades\Route;
 
@@ -41,6 +42,9 @@ Route::prefix('v1')->group(function () {
             Route::get('members', [ProjectMemberController::class, 'index']);
             Route::post('members', [ProjectMemberController::class, 'store']);
             Route::delete('members/{user}', [ProjectMemberController::class, 'destroy']);
+
+            Route::post('reports', [ReportController::class, 'store']);
+            Route::get('reports/{report}/download', [ReportController::class, 'download'])->scopeBindings();
         });
 
         Route::prefix('notifications')->group(function () {
