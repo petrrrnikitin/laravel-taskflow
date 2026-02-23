@@ -25,6 +25,7 @@ use Illuminate\Support\Carbon;
  * @property TaskStatus $status
  * @property TaskPriority $priority
  * @property Carbon|null $due_date
+ * @property Carbon|null $last_overdue_notified_at
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property string|null $search_vector
@@ -63,14 +64,16 @@ class Task extends Model
         'status',
         'priority',
         'due_date',
+        'last_overdue_notified_at',
     ];
 
     protected function casts(): array
     {
         return [
-            'status'   => TaskStatus::class,
-            'priority' => TaskPriority::class,
-            'due_date' => 'date',
+            'status'                   => TaskStatus::class,
+            'priority'                 => TaskPriority::class,
+            'due_date'                 => 'date',
+            'last_overdue_notified_at' => 'datetime',
         ];
     }
 
