@@ -17,7 +17,8 @@ class AuthController extends Controller
 {
     public function __construct(
         private readonly AuthService $authService,
-    ) {}
+    ) {
+    }
 
     #[OA\Post(
         path : '/auth/register',

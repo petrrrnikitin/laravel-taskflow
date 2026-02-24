@@ -18,7 +18,8 @@ class ProjectController extends Controller
 {
     public function __construct(
         private readonly ProjectService $projectService,
-    ) {}
+    ) {
+    }
 
     #[OA\Get(
         path: '/projects',

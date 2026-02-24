@@ -10,7 +10,8 @@ final readonly class CreateCommentDTO
         public int $taskId,
         public int $authorId,
         public string $body,
-    ) {}
+    ) {
+    }
 
     public static function fromRequest(CreateCommentRequest $request, int $taskId): self
     {

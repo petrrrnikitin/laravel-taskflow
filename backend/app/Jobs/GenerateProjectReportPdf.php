@@ -16,7 +16,9 @@ use Throwable;
 
 class GenerateProjectReportPdf implements ShouldQueue
 {
-    use InteractsWithQueue, Queueable, SerializesModels;
+    use InteractsWithQueue;
+    use Queueable;
+    use SerializesModels;
 
     public int $tries = 3;
 
@@ -24,7 +26,8 @@ class GenerateProjectReportPdf implements ShouldQueue
 
     public function __construct(
         public readonly Report $report,
-    ) {}
+    ) {
+    }
 
     public function handle(ReportRepositoryInterface $reports): void
     {

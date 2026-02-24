@@ -16,7 +16,8 @@ class ReportController extends Controller
 {
     public function __construct(
         private readonly ReportService $reportService,
-    ) {}
+    ) {
+    }
 
     #[OA\Post(
         path: '/projects/{project}/reports',

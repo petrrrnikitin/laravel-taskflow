@@ -12,12 +12,14 @@ use Illuminate\Queue\SerializesModels;
 
 class TaskAssignedMail extends Mailable
 {
-    use Queueable, SerializesModels;
+    use Queueable;
+    use SerializesModels;
 
     public function __construct(
         public readonly Task $task,
         public readonly User $assignee,
-    ) {}
+    ) {
+    }
 
     public function envelope(): Envelope
     {

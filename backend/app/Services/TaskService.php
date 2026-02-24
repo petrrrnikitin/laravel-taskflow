@@ -27,7 +27,8 @@ readonly class TaskService
 {
     public function __construct(
         private TaskRepositoryInterface $tasks,
-    ) {}
+    ) {
+    }
 
     /** @return Collection<int, Task> */
     public function getForProject(Project $project): Collection
@@ -50,7 +51,7 @@ readonly class TaskService
     {
         $task = $this->tasks->create($dto);
         $actor = Auth::user();
-        if (! $actor instanceof User) {
+        if (!$actor instanceof User) {
             throw new AuthenticationException();
         }
 
@@ -67,14 +68,14 @@ readonly class TaskService
     {
         $oldAssigneeId = $task->assignee_id;
         $actor = Auth::user();
-        if (! $actor instanceof User) {
+        if (!$actor instanceof User) {
             throw new AuthenticationException();
         }
         $changes = $this->trackChanges($task, $dto);
 
         $updated = $this->tasks->update($task, $dto);
 
-        if (! empty($changes)) {
+        if (!empty($changes)) {
             TaskUpdated::dispatch($updated, $changes, $actor);
         }
 
@@ -93,7 +94,7 @@ readonly class TaskService
         /** @var TaskStatus $oldStatus */
         $oldStatus = $task->status;
         $actor = Auth::user();
-        if (! $actor instanceof User) {
+        if (!$actor instanceof User) {
             throw new AuthenticationException();
         }
 

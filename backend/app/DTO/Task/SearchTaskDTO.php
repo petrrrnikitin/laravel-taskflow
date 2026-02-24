@@ -14,7 +14,8 @@ final readonly class SearchTaskDTO
         public ?TaskPriority $priority,
         public ?int $assigneeId,
         public int $perPage,
-    ) {}
+    ) {
+    }
 
     public static function fromRequest(SearchTaskRequest $request): self
     {

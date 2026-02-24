@@ -13,7 +13,8 @@ class NotificationController extends Controller
 {
     public function __construct(
         private readonly NotificationService $notificationService,
-    ) {}
+    ) {
+    }
 
     #[OA\Get(
         path: '/notifications',

@@ -15,7 +15,8 @@ readonly class AuthService
 {
     public function __construct(
         private UserRepositoryInterface $users,
-    ) {}
+    ) {
+    }
 
     public function register(RegisterDTO $dto): AuthResultDTO
     {

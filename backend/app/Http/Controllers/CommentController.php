@@ -19,7 +19,8 @@ class CommentController extends Controller
 {
     public function __construct(
         private readonly CommentService $commentService,
-    ) {}
+    ) {
+    }
 
     #[OA\Get(
         path: '/projects/{project}/tasks/{task}/comments',

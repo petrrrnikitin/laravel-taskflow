@@ -11,7 +11,8 @@ readonly class ActivityService
 {
     public function __construct(
         private ActivityLogRepositoryInterface $activityLogs,
-    ) {}
+    ) {
+    }
 
     /** @return Collection<int, ActivityLog> */
     public function getForTask(Task $task): Collection

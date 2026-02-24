@@ -8,7 +8,8 @@ final readonly class AddMemberDTO
 {
     public function __construct(
         public int $userId,
-    ) {}
+    ) {
+    }
 
     public static function fromRequest(AddMemberRequest $request): self
     {

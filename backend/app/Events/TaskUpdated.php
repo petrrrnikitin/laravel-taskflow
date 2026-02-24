@@ -9,7 +9,8 @@ use Illuminate\Queue\SerializesModels;
 
 class TaskUpdated
 {
-    use Dispatchable, SerializesModels;
+    use Dispatchable;
+    use SerializesModels;
 
     /**
      * @param  array<string, array{old: mixed, new: mixed}>  $changes
@@ -18,5 +19,6 @@ class TaskUpdated
         public readonly Task $task,
         public readonly array $changes,
         public readonly User $actor,
-    ) {}
+    ) {
+    }
 }

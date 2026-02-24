@@ -20,7 +20,8 @@ class TaskController extends Controller
 {
     public function __construct(
         private readonly TaskService $taskService,
-    ) {}
+    ) {
+    }
 
     #[OA\Get(
         path: '/projects/{project}/tasks',

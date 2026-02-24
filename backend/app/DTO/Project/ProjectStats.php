@@ -19,5 +19,6 @@ final readonly class ProjectStats
         public float $completionRate,
         public int $membersCount,
         public Collection $topAssignees,
-    ) {}
+    ) {
+    }
 }

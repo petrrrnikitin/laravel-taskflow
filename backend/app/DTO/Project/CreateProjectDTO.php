@@ -10,7 +10,8 @@ final readonly class CreateProjectDTO
         public int $ownerId,
         public string $name,
         public ?string $description,
-    ) {}
+    ) {
+    }
 
     public static function fromRequest(CreateProjectRequest $request): self
     {

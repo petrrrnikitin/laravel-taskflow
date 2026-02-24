@@ -14,7 +14,8 @@ final readonly class UpdateTaskDTO
         public TaskPriority $priority,
         public ?Carbon $dueDate,
         public ?int $assigneeId,
-    ) {}
+    ) {
+    }
 
     public static function fromRequest(UpdateTaskRequest $request): self
     {

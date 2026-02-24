@@ -24,7 +24,11 @@ use OpenApi\Attributes as OA;
         new OA\Property(property: 'status', type: 'string', enum: ['todo', 'in_progress', 'done'], example: 'todo'),
         new OA\Property(property: 'priority', type: 'string', enum: ['low', 'medium', 'high'], example: 'medium'),
         new OA\Property(
-            property : 'due_date', type : 'string', format : 'date', example : '2026-03-01', nullable : true
+            property : 'due_date',
+            type : 'string',
+            format : 'date',
+            example : '2026-03-01',
+            nullable : true
         ),
         new OA\Property(property: 'project', ref: '#/components/schemas/ProjectResource', nullable: true),
         new OA\Property(property: 'creator', ref: '#/components/schemas/UserResource', nullable: true),

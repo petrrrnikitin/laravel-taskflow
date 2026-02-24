@@ -18,7 +18,8 @@ readonly class ProjectMemberService
     public function __construct(
         private ProjectMemberRepositoryInterface $members,
         private UserRepositoryInterface $users,
-    ) {}
+    ) {
+    }
 
     /** @return Collection<int, User> */
     public function getMembers(Project $project): Collection

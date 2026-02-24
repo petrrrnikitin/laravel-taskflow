@@ -12,7 +12,8 @@ readonly class NotificationService
 {
     public function __construct(
         private NotificationRepositoryInterface $notifications,
-    ) {}
+    ) {
+    }
 
     /** @return LengthAwarePaginator<int, DatabaseNotification> */
     public function getForUser(User $user, int $perPage = 20): LengthAwarePaginator

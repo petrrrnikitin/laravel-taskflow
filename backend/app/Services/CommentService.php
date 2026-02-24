@@ -13,7 +13,8 @@ readonly class CommentService
 {
     public function __construct(
         private CommentRepositoryInterface $comments,
-    ) {}
+    ) {
+    }
 
     /** @return Collection<int, Comment> */
     public function getForTask(Task $task): Collection

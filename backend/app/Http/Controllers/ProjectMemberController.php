@@ -16,7 +16,8 @@ class ProjectMemberController extends Controller
 {
     public function __construct(
         private readonly ProjectMemberService $memberService,
-    ) {}
+    ) {
+    }
 
     #[OA\Get(
         path: '/projects/{project}/members',

@@ -13,7 +13,8 @@ class LogTaskActivity
 {
     public function __construct(
         private readonly ActivityLogRepositoryInterface $activityLogs,
-    ) {}
+    ) {
+    }
 
     public function handle(TaskCreated|TaskUpdated|TaskStatusChanged|TaskAssigned $event): void
     {

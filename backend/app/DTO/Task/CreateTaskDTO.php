@@ -18,7 +18,8 @@ final readonly class CreateTaskDTO
         public TaskPriority $priority,
         public ?Carbon $dueDate,
         public ?int $assigneeId,
-    ) {}
+    ) {
+    }
 
     public static function fromRequest(CreateTaskRequest $request, int $projectId): self
     {
