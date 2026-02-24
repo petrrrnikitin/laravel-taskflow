@@ -31,7 +31,7 @@ class AuthServiceTest extends TestCase
     public function test_register_creates_user_and_returns_dto(): void
     {
         $dto = new RegisterDTO('John', 'john@example.com', 'secret');
-        $token = new class
+        $token = new class()
         {
             public string $plainTextToken = 'raw-token';
         };
@@ -52,7 +52,7 @@ class AuthServiceTest extends TestCase
     {
         $plainPassword = 'secret';
         $hashedPassword = Hash::make($plainPassword);
-        $token = new class
+        $token = new class()
         {
             public string $plainTextToken = 'raw-token';
         };

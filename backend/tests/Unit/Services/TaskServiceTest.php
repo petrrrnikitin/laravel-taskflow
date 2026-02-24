@@ -40,17 +40,17 @@ class TaskServiceTest extends TestCase
         $this->taskRepo = $this->mock(TaskRepositoryInterface::class);
         $this->service = app(TaskService::class);
 
-        $this->actor = new User;
+        $this->actor = new User();
         $this->actor->id = 1;
         $this->actingAs($this->actor);
     }
 
     public function test_get_for_project_returns_collection_from_repository(): void
     {
-        $project = new Project;
+        $project = new Project();
         $project->id = 1;
 
-        $collection = new Collection([new Task]);
+        $collection = new Collection([new Task()]);
 
         $this->taskRepo->shouldReceive('allForProject')->once()->with($project)->andReturn($collection);
 
@@ -61,10 +61,10 @@ class TaskServiceTest extends TestCase
 
     public function test_get_for_project_returns_cached_result_on_second_call(): void
     {
-        $project = new Project;
+        $project = new Project();
         $project->id = 2;
 
-        $collection = new Collection([new Task]);
+        $collection = new Collection([new Task()]);
 
         $this->taskRepo->shouldReceive('allForProject')->once()->andReturn($collection);
 
@@ -76,7 +76,7 @@ class TaskServiceTest extends TestCase
 
     public function test_search_delegates_to_repository(): void
     {
-        $user = new User;
+        $user = new User();
         $dto = new SearchTaskDTO(q: 'foo', status: null, priority: null, assigneeId: null, perPage: 15);
         $paginator = new LengthAwarePaginator([], 0, 15);
 
@@ -125,7 +125,7 @@ class TaskServiceTest extends TestCase
             assigneeId: 2,
         );
 
-        $assignee = new User;
+        $assignee = new User();
         $assignee->id = 2;
 
         $task = new Task(['project_id' => 1, 'title' => 'Assigned Task', 'creator_id' => 1, 'assignee_id' => 2]);
@@ -225,7 +225,7 @@ class TaskServiceTest extends TestCase
             assigneeId: 2,
         );
 
-        $assignee = new User;
+        $assignee = new User();
         $assignee->id = 2;
 
         $updated = Mockery::mock(Task::class)->makePartial();

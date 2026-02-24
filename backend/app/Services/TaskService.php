@@ -16,10 +16,10 @@ use App\Models\Task;
 use App\Models\User;
 use App\Repositories\Contracts\TaskRepositoryInterface;
 use App\Support\CacheKeys;
+use Illuminate\Auth\AuthenticationException;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Carbon;
-use Illuminate\Auth\AuthenticationException;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 

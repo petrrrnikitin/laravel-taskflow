@@ -60,7 +60,7 @@ class TaskActivityNotification extends Notification implements ShouldQueue
 
     public function toMail(): MailMessage
     {
-        return (new MailMessage)
+        return (new MailMessage())
             ->subject($this->subject)
             ->greeting('Hello!')
             ->line($this->message)

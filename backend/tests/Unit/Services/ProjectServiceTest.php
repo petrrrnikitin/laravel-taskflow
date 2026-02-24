@@ -30,10 +30,10 @@ class ProjectServiceTest extends TestCase
 
     public function test_get_for_user_returns_collection_from_repository(): void
     {
-        $user = new User;
+        $user = new User();
         $user->id = 1;
 
-        $collection = new Collection([new Project]);
+        $collection = new Collection([new Project()]);
 
         $this->projectRepo->shouldReceive('allForUser')->once()->with($user)->andReturn($collection);
 
@@ -44,10 +44,10 @@ class ProjectServiceTest extends TestCase
 
     public function test_get_for_user_returns_cached_result_on_second_call(): void
     {
-        $user = new User;
+        $user = new User();
         $user->id = 2;
 
-        $collection = new Collection([new Project]);
+        $collection = new Collection([new Project()]);
 
         // Repository must be called exactly once; second call should come from cache
         $this->projectRepo->shouldReceive('allForUser')->once()->andReturn($collection);
@@ -61,7 +61,7 @@ class ProjectServiceTest extends TestCase
     public function test_create_delegates_to_repository(): void
     {
         $dto = new CreateProjectDTO(ownerId: 1, name: 'My Project', description: null);
-        $project = new Project;
+        $project = new Project();
 
         $this->projectRepo->shouldReceive('create')->with($dto)->once()->andReturn($project);
 
@@ -72,7 +72,7 @@ class ProjectServiceTest extends TestCase
 
     public function test_update_delegates_to_repository(): void
     {
-        $project = new Project;
+        $project = new Project();
         $dto = new UpdateProjectDTO(name: 'New Name', description: null);
 
         $this->projectRepo->shouldReceive('update')->with($project, $dto)->once()->andReturn($project);
@@ -84,8 +84,8 @@ class ProjectServiceTest extends TestCase
 
     public function test_archive_delegates_to_repository(): void
     {
-        $project = new Project;
-        $archived = new Project;
+        $project = new Project();
+        $archived = new Project();
 
         $this->projectRepo->shouldReceive('archive')->with($project)->once()->andReturn($archived);
 
@@ -96,7 +96,7 @@ class ProjectServiceTest extends TestCase
 
     public function test_delete_delegates_to_repository(): void
     {
-        $project = new Project;
+        $project = new Project();
 
         $this->projectRepo->shouldReceive('delete')->with($project)->once();
 

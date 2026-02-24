@@ -27,7 +27,7 @@ class NotificationServiceTest extends TestCase
 
     public function test_get_for_user_delegates_to_repository(): void
     {
-        $user = new User;
+        $user = new User();
         $paginator = new LengthAwarePaginator([], 0, 20);
 
         $this->notificationRepo->shouldReceive('forUser')->with($user, 20)->once()->andReturn($paginator);
@@ -39,7 +39,7 @@ class NotificationServiceTest extends TestCase
 
     public function test_get_for_user_passes_custom_per_page_to_repository(): void
     {
-        $user = new User;
+        $user = new User();
         $paginator = new LengthAwarePaginator([], 0, 5);
 
         $this->notificationRepo->shouldReceive('forUser')->with($user, 5)->once()->andReturn($paginator);
@@ -51,7 +51,7 @@ class NotificationServiceTest extends TestCase
 
     public function test_mark_as_read_marks_notification_and_returns_it(): void
     {
-        $user = new User;
+        $user = new User();
         $notification = Mockery::mock(DatabaseNotification::class);
         $notification->shouldReceive('markAsRead')->once();
 
@@ -64,7 +64,7 @@ class NotificationServiceTest extends TestCase
 
     public function test_mark_as_read_throws_model_not_found_when_notification_missing(): void
     {
-        $user = new User;
+        $user = new User();
 
         $this->notificationRepo->shouldReceive('findForUser')->with($user, 'unknown-uuid')->once()->andReturn(null);
 
@@ -75,7 +75,7 @@ class NotificationServiceTest extends TestCase
 
     public function test_mark_all_as_read_delegates_to_repository(): void
     {
-        $user = new User;
+        $user = new User();
 
         $this->notificationRepo->shouldReceive('markAllAsRead')->with($user)->once();
 
@@ -84,7 +84,7 @@ class NotificationServiceTest extends TestCase
 
     public function test_unread_count_delegates_to_repository(): void
     {
-        $user = new User;
+        $user = new User();
 
         $this->notificationRepo->shouldReceive('unreadCount')->with($user)->once()->andReturn(7);
 

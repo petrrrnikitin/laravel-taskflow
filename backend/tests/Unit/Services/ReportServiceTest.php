@@ -32,10 +32,10 @@ class ReportServiceTest extends TestCase
     {
         Queue::fake();
 
-        $project = new Project;
+        $project = new Project();
         $project->id = 1;
 
-        $user = new User;
+        $user = new User();
         $user->id = 2;
 
         $report = new Report(['project_id' => 1, 'requested_by' => 2, 'status' => 'pending']);

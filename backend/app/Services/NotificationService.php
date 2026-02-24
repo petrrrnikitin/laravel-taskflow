@@ -25,7 +25,7 @@ readonly class NotificationService
         $notification = $this->notifications->findForUser($user, $id);
 
         if (! $notification) {
-            throw (new ModelNotFoundException)->setModel(DatabaseNotification::class);
+            throw (new ModelNotFoundException())->setModel(DatabaseNotification::class);
         }
 
         $notification->markAsRead();

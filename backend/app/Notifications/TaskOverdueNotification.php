@@ -4,10 +4,10 @@ namespace App\Notifications;
 
 use App\Models\Task;
 use Illuminate\Bus\Queueable;
-use Illuminate\Support\Carbon;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
+use Illuminate\Support\Carbon;
 
 class TaskOverdueNotification extends Notification implements ShouldQueue
 {
@@ -43,7 +43,7 @@ class TaskOverdueNotification extends Notification implements ShouldQueue
         /** @var Carbon|null $dueDate */
         $dueDate = $this->task->due_date;
 
-        return (new MailMessage)
+        return (new MailMessage())
             ->subject("Overdue task: {$this->task->title}")
             ->greeting('Hello!')
             ->line("Task \"{$this->task->title}\" is overdue.")

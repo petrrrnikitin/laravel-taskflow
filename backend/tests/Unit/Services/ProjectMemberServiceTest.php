@@ -35,8 +35,8 @@ class ProjectMemberServiceTest extends TestCase
 
     public function test_get_members_delegates_to_repository(): void
     {
-        $project = new Project;
-        $collection = new Collection([new User]);
+        $project = new Project();
+        $collection = new Collection([new User()]);
 
         $this->memberRepo->shouldReceive('allForProject')->with($project)->once()->andReturn($collection);
 
@@ -49,10 +49,10 @@ class ProjectMemberServiceTest extends TestCase
     {
         Event::fake();
 
-        $project = new Project;
-        $invitee = new User;
+        $project = new Project();
+        $invitee = new User();
         $invitee->id = 5;
-        $actor = new User;
+        $actor = new User();
 
         $this->userRepo->shouldReceive('findById')->with(5)->once()->andReturn($invitee);
         $this->memberRepo->shouldReceive('isMember')->with($project, $invitee)->once()->andReturn(false);
@@ -69,29 +69,29 @@ class ProjectMemberServiceTest extends TestCase
 
         $this->expectException(InviteeNotFoundException::class);
 
-        $this->service->invite(new Project, 99, new User);
+        $this->service->invite(new Project(), 99, new User());
     }
 
     public function test_invite_throws_when_user_is_already_a_member(): void
     {
-        $invitee = new User;
+        $invitee = new User();
         $invitee->id = 3;
-        $project = new Project;
+        $project = new Project();
 
         $this->userRepo->shouldReceive('findById')->with(3)->once()->andReturn($invitee);
         $this->memberRepo->shouldReceive('isMember')->with($project, $invitee)->once()->andReturn(true);
 
         $this->expectException(MemberAlreadyExistsException::class);
 
-        $this->service->invite($project, 3, new User);
+        $this->service->invite($project, 3, new User());
     }
 
     public function test_remove_delegates_to_repository_when_member_is_not_owner(): void
     {
-        $project = new Project;
+        $project = new Project();
         $project->owner_id = 1;
 
-        $member = new User;
+        $member = new User();
         $member->id = 2;
 
         $this->memberRepo->shouldReceive('remove')->with($project, $member)->once();
@@ -101,10 +101,10 @@ class ProjectMemberServiceTest extends TestCase
 
     public function test_remove_throws_when_trying_to_remove_the_owner(): void
     {
-        $project = new Project;
+        $project = new Project();
         $project->owner_id = 1;
 
-        $owner = new User;
+        $owner = new User();
         $owner->id = 1;
 
         $this->expectException(CannotRemoveOwnerException::class);

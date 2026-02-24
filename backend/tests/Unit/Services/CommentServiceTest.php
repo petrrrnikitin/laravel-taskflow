@@ -27,8 +27,8 @@ class CommentServiceTest extends TestCase
 
     public function test_get_for_task_delegates_to_repository(): void
     {
-        $task = new Task;
-        $collection = new Collection([new Comment]);
+        $task = new Task();
+        $collection = new Collection([new Comment()]);
 
         $this->commentRepo->shouldReceive('allForTask')->with($task)->once()->andReturn($collection);
 
@@ -40,7 +40,7 @@ class CommentServiceTest extends TestCase
     public function test_create_delegates_to_repository(): void
     {
         $dto = new CreateCommentDTO(taskId: 1, authorId: 1, body: 'Hello');
-        $comment = new Comment;
+        $comment = new Comment();
 
         $this->commentRepo->shouldReceive('create')->with($dto)->once()->andReturn($comment);
 
@@ -51,9 +51,9 @@ class CommentServiceTest extends TestCase
 
     public function test_update_delegates_to_repository(): void
     {
-        $comment = new Comment;
+        $comment = new Comment();
         $dto = new UpdateCommentDTO(body: 'Updated body');
-        $updated = new Comment;
+        $updated = new Comment();
 
         $this->commentRepo->shouldReceive('update')->with($comment, $dto)->once()->andReturn($updated);
 
@@ -64,7 +64,7 @@ class CommentServiceTest extends TestCase
 
     public function test_delete_delegates_to_repository(): void
     {
-        $comment = new Comment;
+        $comment = new Comment();
 
         $this->commentRepo->shouldReceive('delete')->with($comment)->once();
 
