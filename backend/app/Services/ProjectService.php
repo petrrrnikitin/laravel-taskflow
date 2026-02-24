@@ -7,7 +7,9 @@ use App\DTO\Project\UpdateProjectDTO;
 use App\Models\Project;
 use App\Models\User;
 use App\Repositories\Contracts\ProjectRepositoryInterface;
+use App\Support\CacheKeys;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\Cache;
 
 readonly class ProjectService
 {
@@ -17,7 +19,12 @@ readonly class ProjectService
 
     public function getForUser(User $user): Collection
     {
-        return $this->projects->allForUser($user);
+        return Cache::store('redis')->tags(CacheKeys::userProjects($user->id))
+            ->remember(
+                CacheKeys::userProjects($user->id),
+                CacheKeys::TTL,
+                fn () => $this->projects->allForUser($user),
+            );
     }
 
     public function create(CreateProjectDTO $dto): Project

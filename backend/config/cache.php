@@ -114,4 +114,19 @@ return [
 
     'prefix' => env('CACHE_PREFIX', Str::slug((string) env('APP_NAME', 'laravel')).'-cache-'),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Cache Versions
+    |--------------------------------------------------------------------------
+    |
+    | Bump the relevant version on deploy when a cached data structure changes.
+    | Old keys become unreachable immediately and expire naturally via TTL.
+    |
+    */
+
+    'versions' => [
+        'projects' => 'v1',
+        'tasks'    => 'v1',
+    ],
+
 ];
