@@ -22,11 +22,11 @@ return new class extends Migration
             \$\$ LANGUAGE plpgsql;
         ");
 
-        DB::statement("
+        DB::statement('
             CREATE TRIGGER tasks_search_vector_update
             BEFORE INSERT OR UPDATE ON tasks
             FOR EACH ROW EXECUTE FUNCTION tasks_search_vector_fn()
-        ");
+        ');
 
         DB::statement("
             UPDATE tasks SET search_vector =

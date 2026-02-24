@@ -13,9 +13,9 @@ class TaskStatusChanged
     use Dispatchable, SerializesModels;
 
     public function __construct(
-        public readonly Task       $task,
+        public readonly Task $task,
         public readonly TaskStatus $oldStatus,
         public readonly TaskStatus $newStatus,
-        public readonly User       $actor,
+        public readonly User $actor,
     ) {}
 }

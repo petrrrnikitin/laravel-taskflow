@@ -29,7 +29,7 @@ class EloquentTaskRepository implements TaskRepositoryInterface
         $accessibleProjects = Project::query()
             ->select('id')
             ->where('owner_id', $user->id)
-            ->orWhereHas('members', fn($q) => $q->where('user_id', $user->id));
+            ->orWhereHas('members', fn ($q) => $q->where('user_id', $user->id));
 
         $query = Task::query()
             ->whereIn('project_id', $accessibleProjects)
@@ -70,37 +70,37 @@ class EloquentTaskRepository implements TaskRepositoryInterface
     public function create(CreateTaskDTO $dto): Task
     {
         $task = Task::query()->create([
-            'project_id'  => $dto->projectId,
-            'creator_id'  => $dto->creatorId,
+            'project_id' => $dto->projectId,
+            'creator_id' => $dto->creatorId,
             'assignee_id' => $dto->assigneeId,
-            'title'       => $dto->title,
+            'title' => $dto->title,
             'description' => $dto->description,
-            'status'      => $dto->status,
-            'priority'    => $dto->priority,
-            'due_date'    => $dto->dueDate,
+            'status' => $dto->status,
+            'priority' => $dto->priority,
+            'due_date' => $dto->dueDate,
         ]);
 
-        return $task->fresh(['creator', 'assignee']);
+        return $task->fresh(['creator', 'assignee']) ?? $task;
     }
 
     public function update(Task $task, UpdateTaskDTO $dto): Task
     {
         $task->update([
             'assignee_id' => $dto->assigneeId,
-            'title'       => $dto->title,
+            'title' => $dto->title,
             'description' => $dto->description,
-            'priority'    => $dto->priority,
-            'due_date'    => $dto->dueDate,
+            'priority' => $dto->priority,
+            'due_date' => $dto->dueDate,
         ]);
 
-        return $task->fresh();
+        return $task->fresh() ?? $task;
     }
 
     public function changeStatus(Task $task, TaskStatus $status): Task
     {
         $task->update(['status' => $status]);
 
-        return $task->fresh();
+        return $task->fresh() ?? $task;
     }
 
     public function delete(Task $task): void

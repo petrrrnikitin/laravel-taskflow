@@ -8,6 +8,7 @@ use Illuminate\Pagination\LengthAwarePaginator;
 
 interface NotificationRepositoryInterface
 {
+    /** @return LengthAwarePaginator<int, DatabaseNotification> */
     public function forUser(User $user, int $perPage = 20): LengthAwarePaginator;
 
     public function findForUser(User $user, string $id): ?DatabaseNotification;

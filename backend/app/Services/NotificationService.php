@@ -14,6 +14,7 @@ readonly class NotificationService
         private NotificationRepositoryInterface $notifications,
     ) {}
 
+    /** @return LengthAwarePaginator<int, DatabaseNotification> */
     public function getForUser(User $user, int $perPage = 20): LengthAwarePaginator
     {
         return $this->notifications->forUser($user, $perPage);
@@ -23,8 +24,8 @@ readonly class NotificationService
     {
         $notification = $this->notifications->findForUser($user, $id);
 
-        if (!$notification) {
-            throw new ModelNotFoundException()->setModel('Notification');
+        if (! $notification) {
+            throw (new ModelNotFoundException)->setModel(DatabaseNotification::class);
         }
 
         $notification->markAsRead();

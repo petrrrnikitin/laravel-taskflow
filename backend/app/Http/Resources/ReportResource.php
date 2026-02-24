@@ -2,10 +2,12 @@
 
 namespace App\Http\Resources;
 
+use App\Models\Report;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use OpenApi\Attributes as OA;
 
+/** @mixin Report */
 #[OA\Schema(
     schema: 'ReportResource',
     properties: [
@@ -19,15 +21,16 @@ use OpenApi\Attributes as OA;
 )]
 class ReportResource extends JsonResource
 {
+    /** @return array<string, mixed> */
     public function toArray(Request $request): array
     {
         return [
-            'id'         => $this->id,
+            'id' => $this->id,
             'project_id' => $this->project_id,
-            'status'     => $this->status->value,
-            'requester'  => new UserResource($this->whenLoaded('requester')),
-            'created_at' => $this->created_at->toIso8601String(),
-            'updated_at' => $this->updated_at->toIso8601String(),
+            'status' => $this->status->value,
+            'requester' => new UserResource($this->whenLoaded('requester')),
+            'created_at' => $this->created_at?->toIso8601String(),
+            'updated_at' => $this->updated_at?->toIso8601String(),
         ];
     }
 }

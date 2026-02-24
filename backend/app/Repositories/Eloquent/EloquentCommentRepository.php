@@ -23,9 +23,9 @@ class EloquentCommentRepository implements CommentRepositoryInterface
     public function create(CreateCommentDTO $dto): Comment
     {
         $comment = Comment::query()->create([
-            'task_id'   => $dto->taskId,
+            'task_id' => $dto->taskId,
             'author_id' => $dto->authorId,
-            'body'      => $dto->body,
+            'body' => $dto->body,
         ]);
 
         return $comment->load('author');
@@ -35,7 +35,7 @@ class EloquentCommentRepository implements CommentRepositoryInterface
     {
         $comment->update(['body' => $dto->body]);
 
-        return $comment->fresh();
+        return $comment->fresh() ?? $comment;
     }
 
     public function delete(Comment $comment): void

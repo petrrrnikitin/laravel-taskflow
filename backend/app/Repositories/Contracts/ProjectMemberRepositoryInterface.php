@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Collection;
 
 interface ProjectMemberRepositoryInterface
 {
+    /** @return Collection<int, User> */
     public function allForProject(Project $project): Collection;
 
     public function add(Project $project, User $user, ProjectRole $role): void;

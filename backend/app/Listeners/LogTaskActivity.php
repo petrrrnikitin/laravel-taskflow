@@ -36,16 +36,16 @@ class LogTaskActivity
             $event instanceof TaskAssigned => [
                 ActivityAction::Assigned,
                 [
-                    'assignee_id'   => $event->assignee->id,
+                    'assignee_id' => $event->assignee->id,
                     'assignee_name' => $event->assignee->name,
                 ],
             ],
         };
 
         $this->activityLogs->log(
-            taskId:     $event->task->id,
-            actorId:    $event->actor->id,
-            action:     $action,
+            taskId: $event->task->id,
+            actorId: $event->actor->id,
+            action: $action,
             properties: $properties,
         );
     }

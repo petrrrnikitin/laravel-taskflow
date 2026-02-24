@@ -13,7 +13,7 @@ class ProjectMemberInvited
 
     public function __construct(
         public readonly Project $project,
-        public readonly User    $invitee,
-        public readonly User    $actor,
+        public readonly User $invitee,
+        public readonly User $actor,
     ) {}
 }

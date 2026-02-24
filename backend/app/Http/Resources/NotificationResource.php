@@ -4,8 +4,10 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Notifications\DatabaseNotification;
 use OpenApi\Attributes as OA;
 
+/** @mixin DatabaseNotification */
 #[OA\Schema(
     schema: 'NotificationResource',
     properties: [
@@ -18,14 +20,15 @@ use OpenApi\Attributes as OA;
 )]
 class NotificationResource extends JsonResource
 {
+    /** @return array<string, mixed> */
     public function toArray(Request $request): array
     {
         return [
-            'id'         => $this->id,
-            'type'       => class_basename($this->type),
-            'data'       => $this->data,
-            'read_at'    => $this->read_at?->toIso8601String(),
-            'created_at' => $this->created_at->toIso8601String(),
+            'id' => $this->id,
+            'type' => class_basename($this->type),
+            'data' => $this->data,
+            'read_at' => $this->read_at?->toIso8601String(),
+            'created_at' => $this->created_at?->toIso8601String(),
         ];
     }
 }

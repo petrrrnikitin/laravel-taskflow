@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Collection;
 
 interface CommentRepositoryInterface
 {
+    /** @return Collection<int, Comment> */
     public function allForTask(Task $task): Collection;
 
     public function create(CreateCommentDTO $dto): Comment;

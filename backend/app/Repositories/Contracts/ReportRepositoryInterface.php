@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Collection;
 
 interface ReportRepositoryInterface
 {
+    /** @return Collection<int, Report> */
     public function allForProject(Project $project): Collection;
 
     public function create(int $projectId, int $requestedBy): Report;

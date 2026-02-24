@@ -35,8 +35,13 @@ class NotificationController extends Controller
     )]
     public function index(Request $request): AnonymousResourceCollection
     {
+        $user = $request->user();
+        if ($user === null) {
+            abort(401);
+        }
+
         return NotificationResource::collection(
-            $this->notificationService->getForUser($request->user())
+            $this->notificationService->getForUser($user)
         );
     }
 
@@ -56,7 +61,11 @@ class NotificationController extends Controller
     )]
     public function markAsRead(Request $request, string $id): JsonResponse
     {
-        $this->notificationService->markAsRead($request->user(), $id);
+        $user = $request->user();
+        if ($user === null) {
+            abort(401);
+        }
+        $this->notificationService->markAsRead($user, $id);
 
         return response()->json(['message' => 'Notification marked as read.']);
     }
@@ -73,7 +82,11 @@ class NotificationController extends Controller
     )]
     public function markAllAsRead(Request $request): JsonResponse
     {
-        $this->notificationService->markAllAsRead($request->user());
+        $user = $request->user();
+        if ($user === null) {
+            abort(401);
+        }
+        $this->notificationService->markAllAsRead($user);
 
         return response()->json(['message' => 'All notifications marked as read.']);
     }
@@ -98,8 +111,13 @@ class NotificationController extends Controller
     )]
     public function unreadCount(Request $request): JsonResponse
     {
+        $user = $request->user();
+        if ($user === null) {
+            abort(401);
+        }
+
         return response()->json([
-            'count' => $this->notificationService->unreadCount($request->user()),
+            'count' => $this->notificationService->unreadCount($user),
         ]);
     }
 }

@@ -20,7 +20,8 @@ class CleanupFailedReports extends Command
         $days = (int) $this->option('days');
 
         if ($days < 1) {
-            $this->error('--days must be a positive integer (got: ' . $days . ').');
+            $this->error('--days must be a positive integer (got: '.$days.').');
+
             return self::INVALID;
         }
 
@@ -32,11 +33,12 @@ class CleanupFailedReports extends Command
             ->chunkById(100, function ($reports) use (&$count): void {
                 foreach ($reports as $report) {
                     if ($report->file_path !== null && Storage::exists($report->file_path)) {
-                        if (!Storage::delete($report->file_path)) {
+                        if (! Storage::delete($report->file_path)) {
                             Log::warning('Could not delete report file, skipping record.', [
                                 'report_id' => $report->id,
                                 'file_path' => $report->file_path,
                             ]);
+
                             continue;
                         }
                     }

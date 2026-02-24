@@ -11,9 +11,12 @@ class TaskUpdated
 {
     use Dispatchable, SerializesModels;
 
+    /**
+     * @param  array<string, array{old: mixed, new: mixed}>  $changes
+     */
     public function __construct(
-        public readonly Task  $task,
+        public readonly Task $task,
         public readonly array $changes,
-        public readonly User  $actor,
+        public readonly User $actor,
     ) {}
 }

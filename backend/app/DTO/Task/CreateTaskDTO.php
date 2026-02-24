@@ -22,17 +22,22 @@ final readonly class CreateTaskDTO
 
     public static function fromRequest(CreateTaskRequest $request, int $projectId): self
     {
+        $user = $request->user();
+        if ($user === null) {
+            abort(401);
+        }
+
         return new self(
-            projectId:   $projectId,
-            creatorId:   $request->user()->id,
-            title:       $request->validated('title'),
+            projectId: $projectId,
+            creatorId: $user->id,
+            title: $request->validated('title'),
             description: $request->validated('description'),
-            status:      TaskStatus::Todo,
-            priority:    TaskPriority::from($request->validated('priority', TaskPriority::Medium->value)),
-            dueDate:     $request->validated('due_date')
+            status: TaskStatus::Todo,
+            priority: TaskPriority::from($request->validated('priority', TaskPriority::Medium->value)),
+            dueDate: $request->validated('due_date')
                 ? Carbon::parse($request->validated('due_date'))
                 : null,
-            assigneeId:  $request->validated('assignee_id'),
+            assigneeId: $request->validated('assignee_id'),
         );
     }
 }

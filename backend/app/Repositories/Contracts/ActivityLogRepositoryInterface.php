@@ -9,7 +9,9 @@ use Illuminate\Database\Eloquent\Collection;
 
 interface ActivityLogRepositoryInterface
 {
+    /** @return Collection<int, ActivityLog> */
     public function forTask(Task $task): Collection;
 
+    /** @param array<string, mixed> $properties */
     public function log(int $taskId, int $actorId, ActivityAction $action, array $properties = []): ActivityLog;
 }

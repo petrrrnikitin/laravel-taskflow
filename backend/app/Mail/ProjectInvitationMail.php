@@ -16,7 +16,7 @@ class ProjectInvitationMail extends Mailable
 
     public function __construct(
         public readonly Project $project,
-        public readonly User    $invitee,
+        public readonly User $invitee,
     ) {}
 
     public function envelope(): Envelope

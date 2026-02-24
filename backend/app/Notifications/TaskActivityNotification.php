@@ -15,8 +15,10 @@ class TaskActivityNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 
-    private Task   $task;
+    private Task $task;
+
     private string $message;
+
     private string $subject;
 
     public function __construct(TaskStatusChanged|TaskUpdated|TaskAssigned $event)
@@ -39,18 +41,20 @@ class TaskActivityNotification extends Notification implements ShouldQueue
         };
     }
 
+    /** @return array<int, string> */
     public function via(): array
     {
         return ['database', 'mail'];
     }
 
+    /** @return array<string, mixed> */
     public function toDatabase(): array
     {
         return [
-            'task_id'    => $this->task->id,
+            'task_id' => $this->task->id,
             'task_title' => $this->task->title,
             'project_id' => $this->task->project_id,
-            'message'    => $this->message,
+            'message' => $this->message,
         ];
     }
 

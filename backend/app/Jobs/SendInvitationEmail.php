@@ -13,13 +13,13 @@ use Illuminate\Support\Facades\Mail;
 
 class SendInvitationEmail implements ShouldQueue
 {
-    use Queueable, InteractsWithQueue, SerializesModels;
+    use InteractsWithQueue, Queueable, SerializesModels;
 
     public int $tries = 3;
 
     public function __construct(
         public readonly Project $project,
-        public readonly User    $invitee,
+        public readonly User $invitee,
     ) {}
 
     public function handle(): void

@@ -31,7 +31,7 @@ readonly class ReportService
     {
         if ($report->status !== ReportStatus::Ready
             || $report->file_path === null
-            || !Storage::exists($report->file_path)
+            || ! Storage::exists($report->file_path)
         ) {
             throw new ReportNotReadyException('Report is not ready yet.');
         }

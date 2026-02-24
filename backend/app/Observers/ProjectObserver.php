@@ -34,6 +34,10 @@ class ProjectObserver
         $project->members()->detach();
     }
 
+    /**
+     * @param  array<int, mixed>  $ids
+     * @param  array<string, mixed>  $attributes
+     */
     public function pivotAttached(Project $project, string $relationName, array $ids, array $attributes): void
     {
         if ($relationName === 'members') {
@@ -43,6 +47,7 @@ class ProjectObserver
         }
     }
 
+    /** @param array<int, mixed> $ids */
     public function pivotDetached(Project $project, string $relationName, array $ids): void
     {
         if ($relationName === 'members') {

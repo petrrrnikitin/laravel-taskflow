@@ -14,8 +14,13 @@ final readonly class CreateProjectDTO
 
     public static function fromRequest(CreateProjectRequest $request): self
     {
+        $user = $request->user();
+        if ($user === null) {
+            abort(401);
+        }
+
         return new self(
-            ownerId: $request->user()->id,
+            ownerId: $user->id,
             name: $request->validated('name'),
             description: $request->validated('description'),
         );

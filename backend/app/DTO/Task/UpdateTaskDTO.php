@@ -19,13 +19,13 @@ final readonly class UpdateTaskDTO
     public static function fromRequest(UpdateTaskRequest $request): self
     {
         return new self(
-            title:       $request->validated('title'),
+            title: $request->validated('title'),
             description: $request->validated('description'),
-            priority:    TaskPriority::from($request->validated('priority')),
-            dueDate:     $request->validated('due_date')
+            priority: TaskPriority::from($request->validated('priority')),
+            dueDate: $request->validated('due_date')
                 ? Carbon::parse($request->validated('due_date'))
                 : null,
-            assigneeId:  $request->validated('assignee_id'),
+            assigneeId: $request->validated('assignee_id'),
         );
     }
 }

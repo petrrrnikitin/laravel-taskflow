@@ -5,6 +5,7 @@ namespace App\Services;
 use App\DTO\Task\CreateTaskDTO;
 use App\DTO\Task\SearchTaskDTO;
 use App\DTO\Task\UpdateTaskDTO;
+use App\Enums\TaskPriority;
 use App\Enums\TaskStatus;
 use App\Events\TaskAssigned;
 use App\Events\TaskCreated;
@@ -17,6 +18,8 @@ use App\Repositories\Contracts\TaskRepositoryInterface;
 use App\Support\CacheKeys;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Carbon;
+use Illuminate\Auth\AuthenticationException;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 
@@ -26,6 +29,7 @@ readonly class TaskService
         private TaskRepositoryInterface $tasks,
     ) {}
 
+    /** @return Collection<int, Task> */
     public function getForProject(Project $project): Collection
     {
         return Cache::store('redis')->tags(CacheKeys::projectTasks($project->id))
@@ -36,6 +40,7 @@ readonly class TaskService
             );
     }
 
+    /** @return LengthAwarePaginator<int, Task> */
     public function search(User $user, SearchTaskDTO $dto): LengthAwarePaginator
     {
         return $this->tasks->search($user, $dto);
@@ -43,8 +48,11 @@ readonly class TaskService
 
     public function create(CreateTaskDTO $dto): Task
     {
-        $task  = $this->tasks->create($dto);
+        $task = $this->tasks->create($dto);
         $actor = Auth::user();
+        if (! $actor instanceof User) {
+            throw new AuthenticationException();
+        }
 
         TaskCreated::dispatch($task, $actor);
 
@@ -58,12 +66,15 @@ readonly class TaskService
     public function update(Task $task, UpdateTaskDTO $dto): Task
     {
         $oldAssigneeId = $task->assignee_id;
-        $actor         = Auth::user();
-        $changes       = $this->trackChanges($task, $dto);
+        $actor = Auth::user();
+        if (! $actor instanceof User) {
+            throw new AuthenticationException();
+        }
+        $changes = $this->trackChanges($task, $dto);
 
         $updated = $this->tasks->update($task, $dto);
 
-        if (!empty($changes)) {
+        if (! empty($changes)) {
             TaskUpdated::dispatch($updated, $changes, $actor);
         }
 
@@ -79,8 +90,12 @@ readonly class TaskService
 
     public function changeStatus(Task $task, TaskStatus $status): Task
     {
+        /** @var TaskStatus $oldStatus */
         $oldStatus = $task->status;
-        $actor     = Auth::user();
+        $actor = Auth::user();
+        if (! $actor instanceof User) {
+            throw new AuthenticationException();
+        }
 
         $updated = $this->tasks->changeStatus($task, $status);
 
@@ -94,6 +109,9 @@ readonly class TaskService
         $this->tasks->delete($task);
     }
 
+    /**
+     * @return array<string, array{old: mixed, new: mixed}>
+     */
     private function trackChanges(Task $task, UpdateTaskDTO $dto): array
     {
         $changes = [];
@@ -106,13 +124,17 @@ readonly class TaskService
             $changes['description'] = ['old' => $task->description, 'new' => $dto->description];
         }
 
-        if ($dto->priority !== $task->priority) {
-            $changes['priority'] = ['old' => $task->priority->value, 'new' => $dto->priority->value];
+        /** @var TaskPriority $currentPriority */
+        $currentPriority = $task->priority;
+        if ($dto->priority !== $currentPriority) {
+            $changes['priority'] = ['old' => $currentPriority->value, 'new' => $dto->priority->value];
         }
 
-        if ($dto->dueDate?->toDateString() !== $task->due_date?->toDateString()) {
+        /** @var Carbon|null $currentDueDate */
+        $currentDueDate = $task->due_date;
+        if ($dto->dueDate?->toDateString() !== $currentDueDate?->toDateString()) {
             $changes['due_date'] = [
-                'old' => $task->due_date?->toDateString(),
+                'old' => $currentDueDate?->toDateString(),
                 'new' => $dto->dueDate?->toDateString(),
             ];
         }

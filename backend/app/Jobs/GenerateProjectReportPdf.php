@@ -16,19 +16,19 @@ use Throwable;
 
 class GenerateProjectReportPdf implements ShouldQueue
 {
-    use Queueable, InteractsWithQueue, SerializesModels;
+    use InteractsWithQueue, Queueable, SerializesModels;
 
-    public int $tries   = 3;
+    public int $tries = 3;
+
     public int $timeout = 120;
 
     public function __construct(
         public readonly Report $report,
-        private readonly ReportRepositoryInterface $reports,
     ) {}
 
-    public function handle(): void
+    public function handle(ReportRepositoryInterface $reports): void
     {
-        $this->reports->update($this->report, ReportStatus::Processing);
+        $reports->update($this->report, ReportStatus::Processing);
 
         $project = $this->report->project()->with([
             'tasks.assignee',
@@ -38,18 +38,18 @@ class GenerateProjectReportPdf implements ShouldQueue
             throw new RuntimeException("Project not found for report #{$this->report->id}.");
         }
 
-        $pdf  = Pdf::loadView('reports.project', compact('project'));
+        $pdf = Pdf::loadView('reports.project', compact('project'));
         $path = "reports/project_{$project->id}/{$this->report->id}.pdf";
 
-        if (!Storage::put($path, $pdf->output())) {
+        if (! Storage::put($path, $pdf->output())) {
             throw new RuntimeException("Failed to store report PDF at {$path}.");
         }
 
-        $this->reports->update($this->report, ReportStatus::Ready, $path);
+        $reports->update($this->report, ReportStatus::Ready, $path);
     }
 
-    public function failed(Throwable $e): void
+    public function failed(?Throwable $e): void
     {
-        $this->reports->update($this->report, ReportStatus::Failed);
+        app(ReportRepositoryInterface::class)->update($this->report, ReportStatus::Failed);
     }
 }

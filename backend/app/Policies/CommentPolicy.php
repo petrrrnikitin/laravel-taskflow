@@ -11,7 +11,12 @@ class CommentPolicy
 {
     public function create(User $user, Task $task): bool
     {
-        return $task->project->isOwnedBy($user) || $task->project->hasMember($user);
+        $project = $task->project;
+        if ($project === null) {
+            throw new AuthorizationException('Task has no associated project.');
+        }
+
+        return $project->isOwnedBy($user) || $project->hasMember($user);
     }
 
     public function update(User $user, Comment $comment): bool
@@ -22,7 +27,12 @@ class CommentPolicy
 
     public function delete(User $user, Comment $comment): bool
     {
-        return $comment->author_id === $user->id || $comment->task->project->isOwnedBy($user)
+        $project = $comment->task?->project;
+        if ($project === null) {
+            throw new AuthorizationException('Comment has no associated project.');
+        }
+
+        return $comment->author_id === $user->id || $project->isOwnedBy($user)
             ?: throw new AuthorizationException('Only the comment author or project owner can delete this comment.');
     }
 }

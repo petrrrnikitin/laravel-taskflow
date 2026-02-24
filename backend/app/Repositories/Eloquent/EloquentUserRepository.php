@@ -12,8 +12,8 @@ class EloquentUserRepository implements UserRepositoryInterface
     public function create(RegisterDTO $dto): User
     {
         return User::query()->create([
-            'name'     => $dto->name,
-            'email'    => $dto->email,
+            'name' => $dto->name,
+            'email' => $dto->email,
             'password' => Hash::make($dto->password),
         ]);
     }

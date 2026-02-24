@@ -126,7 +126,7 @@ return [
 
     'versions' => [
         'projects' => 'v1',
-        'tasks'    => 'v1',
+        'tasks' => 'v1',
     ],
 
 ];

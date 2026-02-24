@@ -1,0 +1,10 @@
+includes:
+    - vendor/larastan/larastan/extension.neon
+
+parameters:
+    level: 8
+    paths:
+        - app
+    ignoreErrors:
+        - identifier: constant.notFound
+          message: '#Constant L5_SWAGGER_CONST_HOST not found#'

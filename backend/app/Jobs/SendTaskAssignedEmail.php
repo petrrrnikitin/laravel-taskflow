@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Mail;
 
 class SendTaskAssignedEmail implements ShouldQueue
 {
-    use Queueable, InteractsWithQueue, SerializesModels;
+    use InteractsWithQueue, Queueable, SerializesModels;
 
     public int $tries = 3;
 

@@ -15,17 +15,17 @@ class EnsureUserBelongsToProject
         /** @var Project|null $project */
         $project = $request->route('project');
 
-        if (!$project instanceof Project) {
+        if (! $project instanceof Project) {
             return $next($request);
         }
 
         $user = $request->user();
 
-        if (!$user instanceof User) {
+        if (! $user instanceof User) {
             return response()->json(['message' => 'Unauthenticated.'], 401);
         }
 
-        if (!$project->isOwnedBy($user) && !$project->hasMember($user)) {
+        if (! $project->isOwnedBy($user) && ! $project->hasMember($user)) {
             return response()->json(['message' => 'You are not a member of this project.'], 403);
         }
 

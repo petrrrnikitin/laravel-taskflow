@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Collection;
 
 interface ProjectRepositoryInterface
 {
+    /** @return Collection<int, Project> */
     public function allForUser(User $user): Collection;
 
     public function findById(int $id): ?Project;

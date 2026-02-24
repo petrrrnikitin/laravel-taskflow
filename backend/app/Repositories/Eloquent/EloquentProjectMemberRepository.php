@@ -21,8 +21,7 @@ class EloquentProjectMemberRepository implements ProjectMemberRepositoryInterfac
     {
         try {
             $project->members()->attach($user->id, ['role' => $role->value]);
-        }
-        catch (UniqueConstraintViolationException) {
+        } catch (UniqueConstraintViolationException) {
             throw new MemberAlreadyExistsException('User is already a member of this project.');
         }
     }

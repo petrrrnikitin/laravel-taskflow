@@ -18,12 +18,13 @@ class EloquentActivityLogRepository implements ActivityLogRepositoryInterface
             ->get();
     }
 
+    /** @param array<string, mixed> $properties */
     public function log(int $taskId, int $actorId, ActivityAction $action, array $properties = []): ActivityLog
     {
         return ActivityLog::create([
-            'task_id'    => $taskId,
-            'actor_id'   => $actorId,
-            'action'     => $action,
+            'task_id' => $taskId,
+            'actor_id' => $actorId,
+            'action' => $action,
             'properties' => $properties,
         ]);
     }
