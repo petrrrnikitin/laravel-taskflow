@@ -13,7 +13,8 @@ class ActivityController extends Controller
 {
     public function __construct(
         private readonly ActivityService $activityService,
-    ) {}
+    ) {
+    }
 
     #[OA\Get(
         path: '/projects/{project}/tasks/{task}/activity',

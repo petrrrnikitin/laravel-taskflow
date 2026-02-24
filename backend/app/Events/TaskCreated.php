@@ -9,10 +9,12 @@ use Illuminate\Queue\SerializesModels;
 
 class TaskCreated
 {
-    use Dispatchable, SerializesModels;
+    use Dispatchable;
+    use SerializesModels;
 
     public function __construct(
         public readonly Task $task,
         public readonly User $actor,
-    ) {}
+    ) {
+    }
 }

@@ -36,6 +36,7 @@ use Illuminate\Support\Carbon;
  * @property-read User|null $assignee
  * @property-read User|null $creator
  * @property-read Project|null $project
+ *
  * @method static Builder<static>|Task newModelQuery()
  * @method static Builder<static>|Task newQuery()
  * @method static Builder<static>|Task query()
@@ -51,6 +52,7 @@ use Illuminate\Support\Carbon;
  * @method static Builder<static>|Task whereStatus($value)
  * @method static Builder<static>|Task whereTitle($value)
  * @method static Builder<static>|Task whereUpdatedAt($value)
+ *
  * @mixin Eloquent
  */
 class Task extends Model
@@ -70,33 +72,38 @@ class Task extends Model
     protected function casts(): array
     {
         return [
-            'status'                   => TaskStatus::class,
-            'priority'                 => TaskPriority::class,
-            'due_date'                 => 'date',
+            'status' => TaskStatus::class,
+            'priority' => TaskPriority::class,
+            'due_date' => 'date',
             'last_overdue_notified_at' => 'datetime',
         ];
     }
 
+    /** @return HasMany<Comment, $this> */
     public function comments(): HasMany
     {
         return $this->hasMany(Comment::class);
     }
 
+    /** @return HasMany<ActivityLog, $this> */
     public function activityLogs(): HasMany
     {
         return $this->hasMany(ActivityLog::class);
     }
 
+    /** @return BelongsTo<Project, $this> */
     public function project(): BelongsTo
     {
         return $this->belongsTo(Project::class);
     }
 
+    /** @return BelongsTo<User, $this> */
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'creator_id');
     }
 
+    /** @return BelongsTo<User, $this> */
     public function assignee(): BelongsTo
     {
         return $this->belongsTo(User::class, 'assignee_id');

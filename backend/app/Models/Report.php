@@ -19,6 +19,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $updated_at
  * @property-read Project|null $project
  * @property-read User|null $requester
+ *
  * @method static Builder<static>|Report newModelQuery()
  * @method static Builder<static>|Report newQuery()
  * @method static Builder<static>|Report query()
@@ -29,6 +30,7 @@ use Illuminate\Support\Carbon;
  * @method static Builder<static>|Report whereRequestedBy($value)
  * @method static Builder<static>|Report whereStatus($value)
  * @method static Builder<static>|Report whereUpdatedAt($value)
+ *
  * @mixin Eloquent
  */
 class Report extends Model
@@ -47,11 +49,13 @@ class Report extends Model
         ];
     }
 
+    /** @return BelongsTo<Project, $this> */
     public function project(): BelongsTo
     {
         return $this->belongsTo(Project::class);
     }
 
+    /** @return BelongsTo<User, $this> */
     public function requester(): BelongsTo
     {
         return $this->belongsTo(User::class, 'requested_by');

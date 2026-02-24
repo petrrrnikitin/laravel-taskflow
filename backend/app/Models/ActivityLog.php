@@ -18,6 +18,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon $created_at
  * @property-read User|null $actor
  * @property-read Task|null $task
+ *
  * @method static Builder<static>|ActivityLog newModelQuery()
  * @method static Builder<static>|ActivityLog newQuery()
  * @method static Builder<static>|ActivityLog query()
@@ -27,6 +28,7 @@ use Illuminate\Support\Carbon;
  * @method static Builder<static>|ActivityLog whereId($value)
  * @method static Builder<static>|ActivityLog whereProperties($value)
  * @method static Builder<static>|ActivityLog whereTaskId($value)
+ *
  * @mixin Eloquent
  */
 class ActivityLog extends Model
@@ -43,16 +45,18 @@ class ActivityLog extends Model
     protected function casts(): array
     {
         return [
-            'action'     => ActivityAction::class,
+            'action' => ActivityAction::class,
             'properties' => 'array',
         ];
     }
 
+    /** @return BelongsTo<Task, $this> */
     public function task(): BelongsTo
     {
         return $this->belongsTo(Task::class);
     }
 
+    /** @return BelongsTo<User, $this> */
     public function actor(): BelongsTo
     {
         return $this->belongsTo(User::class, 'actor_id');

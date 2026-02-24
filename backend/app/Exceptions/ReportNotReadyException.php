@@ -4,4 +4,6 @@ namespace App\Exceptions;
 
 use RuntimeException;
 
-class ReportNotReadyException extends RuntimeException {}
+class ReportNotReadyException extends RuntimeException
+{
+}

@@ -10,7 +10,8 @@ final readonly class RegisterDTO
         public string $name,
         public string $email,
         public string $password,
-    ) {}
+    ) {
+    }
 
     public static function fromRequest(RegisterRequest $request): self
     {

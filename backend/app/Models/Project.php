@@ -30,6 +30,7 @@ use Illuminate\Support\Carbon;
  * @property-read Collection<int, User> $members
  * @property-read int|null $members_count
  * @property-read User|null $owner
+ *
  * @method static Builder<static>|Project newModelQuery()
  * @method static Builder<static>|Project newQuery()
  * @method static Builder<static>|Project query()
@@ -40,6 +41,7 @@ use Illuminate\Support\Carbon;
  * @method static Builder<static>|Project whereOwnerId($value)
  * @method static Builder<static>|Project whereStatus($value)
  * @method static Builder<static>|Project whereUpdatedAt($value)
+ *
  * @mixin Eloquent
  */
 class Project extends Model
@@ -58,21 +60,25 @@ class Project extends Model
         ];
     }
 
+    /** @return HasMany<Task, $this> */
     public function tasks(): HasMany
     {
         return $this->hasMany(Task::class);
     }
 
+    /** @return HasMany<Report, $this> */
     public function reports(): HasMany
     {
         return $this->hasMany(Report::class);
     }
 
+    /** @return BelongsTo<User, $this> */
     public function owner(): BelongsTo
     {
         return $this->belongsTo(User::class, 'owner_id');
     }
 
+    /** @return BelongsToMany<User, $this> */
     public function members(): BelongsToMany
     {
         return $this->belongsToMany(User::class)

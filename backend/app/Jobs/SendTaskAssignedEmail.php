@@ -13,14 +13,17 @@ use Illuminate\Support\Facades\Mail;
 
 class SendTaskAssignedEmail implements ShouldQueue
 {
-    use Queueable, InteractsWithQueue, SerializesModels;
+    use InteractsWithQueue;
+    use Queueable;
+    use SerializesModels;
 
     public int $tries = 3;
 
     public function __construct(
         public readonly Task $task,
         public readonly User $assignee,
-    ) {}
+    ) {
+    }
 
     public function handle(): void
     {

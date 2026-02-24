@@ -18,7 +18,7 @@ class EloquentProjectRepository implements ProjectRepositoryInterface
         return Project::query()
             ->where(function ($query) use ($user) {
                 $query->where('owner_id', $user->id)
-                    ->orWhereHas('members', fn($q) => $q->where('user_id', $user->id));
+                    ->orWhereHas('members', fn ($q) => $q->where('user_id', $user->id));
             })
             ->with('owner')
             ->latest()
@@ -33,31 +33,31 @@ class EloquentProjectRepository implements ProjectRepositoryInterface
     public function create(CreateProjectDTO $dto): Project
     {
         $project = Project::query()->create([
-            'owner_id'    => $dto->ownerId,
-            'name'        => $dto->name,
+            'owner_id' => $dto->ownerId,
+            'name' => $dto->name,
             'description' => $dto->description,
         ]);
 
         $project->members()->attach($dto->ownerId, ['role' => ProjectRole::Owner->value]);
 
-        return $project->fresh();
+        return $project->fresh() ?? $project;
     }
 
     public function update(Project $project, UpdateProjectDTO $dto): Project
     {
         $project->update([
-            'name'        => $dto->name,
+            'name' => $dto->name,
             'description' => $dto->description,
         ]);
 
-        return $project->fresh();
+        return $project->fresh() ?? $project;
     }
 
     public function archive(Project $project): Project
     {
         $project->update(['status' => ProjectStatus::Archived]);
 
-        return $project->fresh();
+        return $project->fresh() ?? $project;
     }
 
     public function delete(Project $project): void

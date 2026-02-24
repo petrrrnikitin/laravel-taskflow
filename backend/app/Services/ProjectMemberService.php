@@ -17,9 +17,11 @@ readonly class ProjectMemberService
 {
     public function __construct(
         private ProjectMemberRepositoryInterface $members,
-        private UserRepositoryInterface          $users,
-    ) {}
+        private UserRepositoryInterface $users,
+    ) {
+    }
 
+    /** @return Collection<int, User> */
     public function getMembers(Project $project): Collection
     {
         return $this->members->allForProject($project);
@@ -29,7 +31,7 @@ readonly class ProjectMemberService
     {
         $invitee = $this->users->findById($userId);
 
-        if (!$invitee) {
+        if (! $invitee) {
             throw new InviteeNotFoundException('User not found.');
         }
 

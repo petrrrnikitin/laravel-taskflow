@@ -8,7 +8,8 @@ final readonly class UpdateCommentDTO
 {
     public function __construct(
         public string $body,
-    ) {}
+    ) {
+    }
 
     public static function fromRequest(UpdateCommentRequest $request): self
     {

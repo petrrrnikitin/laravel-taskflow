@@ -14,8 +14,10 @@ use Illuminate\Database\Eloquent\Collection;
 
 interface TaskRepositoryInterface
 {
+    /** @return Collection<int, Task> */
     public function allForProject(Project $project): Collection;
 
+    /** @return LengthAwarePaginator<int, Task> */
     public function search(User $user, SearchTaskDTO $dto): LengthAwarePaginator;
 
     public function findById(int $id): ?Task;

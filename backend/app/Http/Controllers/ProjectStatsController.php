@@ -11,7 +11,8 @@ class ProjectStatsController extends Controller
 {
     public function __construct(
         private readonly ProjectStatsService $statsService,
-    ) {}
+    ) {
+    }
 
     #[OA\Get(
         path: '/projects/{project}/stats',

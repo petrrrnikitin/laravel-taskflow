@@ -17,6 +17,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $updated_at
  * @property-read User|null $author
  * @property-read Task|null $task
+ *
  * @method static Builder<static>|Comment newModelQuery()
  * @method static Builder<static>|Comment newQuery()
  * @method static Builder<static>|Comment query()
@@ -26,6 +27,7 @@ use Illuminate\Support\Carbon;
  * @method static Builder<static>|Comment whereId($value)
  * @method static Builder<static>|Comment whereTaskId($value)
  * @method static Builder<static>|Comment whereUpdatedAt($value)
+ *
  * @mixin Eloquent
  */
 class Comment extends Model
@@ -36,11 +38,13 @@ class Comment extends Model
         'body',
     ];
 
+    /** @return BelongsTo<Task, $this> */
     public function task(): BelongsTo
     {
         return $this->belongsTo(Task::class);
     }
 
+    /** @return BelongsTo<User, $this> */
     public function author(): BelongsTo
     {
         return $this->belongsTo(User::class, 'author_id');

@@ -2,10 +2,17 @@
 
 namespace App\Http\Resources;
 
+use App\Models\User;
+use Illuminate\Database\Eloquent\Relations\Pivot;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use OpenApi\Attributes as OA;
 
+/**
+ * @mixin User
+ *
+ * @property Pivot $pivot
+ */
 #[OA\Schema(
     schema: 'ProjectMemberResource',
     properties: [
@@ -18,14 +25,15 @@ use OpenApi\Attributes as OA;
 )]
 class ProjectMemberResource extends JsonResource
 {
+    /** @return array<string, mixed> */
     public function toArray(Request $request): array
     {
         return [
-            'id'     => $this->id,
-            'name'   => $this->name,
-            'email'  => $this->email,
+            'id' => $this->id,
+            'name' => $this->name,
+            'email' => $this->email,
             'avatar' => $this->avatar,
-            'role'   => $this->pivot->role,
+            'role' => $this->pivot->getAttribute('role'),
         ];
     }
 }

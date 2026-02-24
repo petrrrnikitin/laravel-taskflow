@@ -18,7 +18,8 @@ class ProjectController extends Controller
 {
     public function __construct(
         private readonly ProjectService $projectService,
-    ) {}
+    ) {
+    }
 
     #[OA\Get(
         path: '/projects',
@@ -43,7 +44,12 @@ class ProjectController extends Controller
     )]
     public function index(Request $request): AnonymousResourceCollection
     {
-        return ProjectResource::collection($this->projectService->getForUser($request->user()));
+        $user = $request->user();
+        if ($user === null) {
+            abort(401);
+        }
+
+        return ProjectResource::collection($this->projectService->getForUser($user));
     }
 
     #[OA\Post(

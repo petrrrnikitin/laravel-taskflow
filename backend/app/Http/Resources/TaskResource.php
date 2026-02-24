@@ -2,10 +2,13 @@
 
 namespace App\Http\Resources;
 
+use App\Models\Task;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Carbon;
 use OpenApi\Attributes as OA;
 
+/** @mixin Task */
 #[OA\Schema(
     schema: 'TaskResource',
     properties: [
@@ -21,7 +24,11 @@ use OpenApi\Attributes as OA;
         new OA\Property(property: 'status', type: 'string', enum: ['todo', 'in_progress', 'done'], example: 'todo'),
         new OA\Property(property: 'priority', type: 'string', enum: ['low', 'medium', 'high'], example: 'medium'),
         new OA\Property(
-            property : 'due_date', type : 'string', format : 'date', example : '2026-03-01', nullable : true
+            property : 'due_date',
+            type : 'string',
+            format : 'date',
+            example : '2026-03-01',
+            nullable : true
         ),
         new OA\Property(property: 'project', ref: '#/components/schemas/ProjectResource', nullable: true),
         new OA\Property(property: 'creator', ref: '#/components/schemas/UserResource', nullable: true),
@@ -32,21 +39,25 @@ use OpenApi\Attributes as OA;
 )]
 class TaskResource extends JsonResource
 {
+    /** @return array<string, mixed> */
     public function toArray(Request $request): array
     {
+        /** @var Carbon|null $dueDate */
+        $dueDate = $this->due_date;
+
         return [
-            'id'          => $this->id,
-            'project_id'  => $this->project_id,
-            'title'       => $this->title,
+            'id' => $this->id,
+            'project_id' => $this->project_id,
+            'title' => $this->title,
             'description' => $this->description,
-            'status'      => $this->status,
-            'priority'    => $this->priority,
-            'due_date'    => $this->due_date?->toDateString(),
-            'project'     => new ProjectResource($this->whenLoaded('project')),
-            'creator'     => new UserResource($this->whenLoaded('creator')),
-            'assignee'    => new UserResource($this->whenLoaded('assignee')),
-            'created_at'  => $this->created_at->toIso8601String(),
-            'updated_at'  => $this->updated_at->toIso8601String(),
+            'status' => $this->status,
+            'priority' => $this->priority,
+            'due_date' => $dueDate?->toDateString(),
+            'project' => new ProjectResource($this->whenLoaded('project')),
+            'creator' => new UserResource($this->whenLoaded('creator')),
+            'assignee' => new UserResource($this->whenLoaded('assignee')),
+            'created_at' => $this->created_at?->toIso8601String(),
+            'updated_at' => $this->updated_at?->toIso8601String(),
         ];
     }
 }

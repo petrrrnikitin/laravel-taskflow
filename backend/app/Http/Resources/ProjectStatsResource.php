@@ -55,6 +55,7 @@ use OpenApi\Attributes as OA;
 )]
 class ProjectStatsResource extends JsonResource
 {
+    /** @return array<string, mixed> */
     public function toArray(Request $request): array
     {
         /** @var ProjectStats $stats */

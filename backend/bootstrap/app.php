@@ -37,13 +37,14 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $exceptions->render(function (ModelNotFoundException $e): JsonResponse {
             $model = class_basename($e->getModel());
+
             return response()->json(['message' => "{$model} not found."], 404);
         });
 
         $exceptions->render(function (ValidationException $e): JsonResponse {
             return response()->json([
                 'message' => 'The given data was invalid.',
-                'errors'  => $e->errors(),
+                'errors' => $e->errors(),
             ], 422);
         });
 

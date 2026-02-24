@@ -26,7 +26,7 @@ class NotifyOverdueTasks extends Command
             ->whereNot('status', TaskStatus::Done)
             ->where(function ($q) use ($today): void {
                 $q->whereNull('last_overdue_notified_at')
-                  ->orWhere('last_overdue_notified_at', '<', $today);
+                    ->orWhere('last_overdue_notified_at', '<', $today);
             })
             ->with('assignee')
             ->chunkById(100, function ($tasks) use (&$count): void {

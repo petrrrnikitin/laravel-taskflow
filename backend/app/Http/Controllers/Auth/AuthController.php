@@ -17,7 +17,8 @@ class AuthController extends Controller
 {
     public function __construct(
         private readonly AuthService $authService,
-    ) {}
+    ) {
+    }
 
     #[OA\Post(
         path : '/auth/register',
@@ -54,7 +55,7 @@ class AuthController extends Controller
         $result = $this->authService->register(RegisterDTO::fromRequest($request));
 
         return response()->json([
-            'user'  => new UserResource($result->user),
+            'user' => new UserResource($result->user),
             'token' => $result->token,
         ], 201);
     }
@@ -93,7 +94,7 @@ class AuthController extends Controller
         $result = $this->authService->login(LoginDTO::fromRequest($request));
 
         return response()->json([
-            'user'  => new UserResource($result->user),
+            'user' => new UserResource($result->user),
             'token' => $result->token,
         ]);
     }
@@ -110,7 +111,11 @@ class AuthController extends Controller
     )]
     public function logout(Request $request): JsonResponse
     {
-        $this->authService->logout($request->user());
+        $user = $request->user();
+        if ($user === null) {
+            abort(401);
+        }
+        $this->authService->logout($user);
 
         return response()->json(['message' => 'Logged out successfully.']);
     }

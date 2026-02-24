@@ -9,7 +9,6 @@ use App\Models\Project;
 use App\Models\User;
 use App\Services\ProjectMemberService;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use OpenApi\Attributes as OA;
 
@@ -17,7 +16,8 @@ class ProjectMemberController extends Controller
 {
     public function __construct(
         private readonly ProjectMemberService $memberService,
-    ) {}
+    ) {
+    }
 
     #[OA\Get(
         path: '/projects/{project}/members',

@@ -8,6 +8,7 @@ use App\Enums\TaskStatus;
 use App\Models\Project;
 use App\Models\Task;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 
 readonly class ProjectStatsService
 {
@@ -18,14 +19,14 @@ readonly class ProjectStatsService
             ->selectRaw('status, COUNT(*) as count')
             ->groupBy('status')
             ->pluck('count', 'status')
-            ->map(fn($c) => (int)$c);
+            ->map(fn ($c) => (int) $c);
 
         $byPriority = Task::query()
             ->where('project_id', $project->id)
             ->selectRaw('priority, COUNT(*) as count')
             ->groupBy('priority')
             ->pluck('count', 'priority')
-            ->map(fn($c) => (int)$c);
+            ->map(fn ($c) => (int) $c);
 
         $byStatus = collect([
             TaskStatus::Todo->value => 0,
@@ -49,6 +50,7 @@ readonly class ProjectStatsService
             ->whereNot('status', TaskStatus::Done)
             ->count();
 
+        /** @var Collection<int, object{id: int, name: string, avatar: string|null, closed_tasks_count: int}> $topAssignees */
         $topAssignees = Task::query()
             ->join('users', 'tasks.assignee_id', '=', 'users.id')
             ->where('tasks.project_id', $project->id)

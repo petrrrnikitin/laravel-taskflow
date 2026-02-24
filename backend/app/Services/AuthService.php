@@ -15,11 +15,12 @@ readonly class AuthService
 {
     public function __construct(
         private UserRepositoryInterface $users,
-    ) {}
+    ) {
+    }
 
     public function register(RegisterDTO $dto): AuthResultDTO
     {
-        $user  = $this->users->create($dto);
+        $user = $this->users->create($dto);
         $token = $user->createToken('api')->plainTextToken;
 
         return new AuthResultDTO($user, $token);
@@ -32,7 +33,7 @@ readonly class AuthService
     {
         $user = $this->users->findByEmail($dto->email);
 
-        if (!$user || !Hash::check($dto->password, $user->password)) {
+        if (! $user || ! Hash::check($dto->password, $user->password)) {
             throw new AuthenticationException('Invalid credentials.');
         }
 

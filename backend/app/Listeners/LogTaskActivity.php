@@ -13,7 +13,8 @@ class LogTaskActivity
 {
     public function __construct(
         private readonly ActivityLogRepositoryInterface $activityLogs,
-    ) {}
+    ) {
+    }
 
     public function handle(TaskCreated|TaskUpdated|TaskStatusChanged|TaskAssigned $event): void
     {
@@ -36,16 +37,16 @@ class LogTaskActivity
             $event instanceof TaskAssigned => [
                 ActivityAction::Assigned,
                 [
-                    'assignee_id'   => $event->assignee->id,
+                    'assignee_id' => $event->assignee->id,
                     'assignee_name' => $event->assignee->name,
                 ],
             ],
         };
 
         $this->activityLogs->log(
-            taskId:     $event->task->id,
-            actorId:    $event->actor->id,
-            action:     $action,
+            taskId: $event->task->id,
+            actorId: $event->actor->id,
+            action: $action,
             properties: $properties,
         );
     }

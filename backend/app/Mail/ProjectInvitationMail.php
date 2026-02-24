@@ -12,12 +12,14 @@ use Illuminate\Queue\SerializesModels;
 
 class ProjectInvitationMail extends Mailable
 {
-    use Queueable, SerializesModels;
+    use Queueable;
+    use SerializesModels;
 
     public function __construct(
         public readonly Project $project,
-        public readonly User    $invitee,
-    ) {}
+        public readonly User $invitee,
+    ) {
+    }
 
     public function envelope(): Envelope
     {

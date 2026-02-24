@@ -8,11 +8,11 @@ final class CacheKeys
 
     public static function userProjects(int $userId): string
     {
-        return "user:{$userId}:projects:" . config('cache.versions.projects');
+        return "user:{$userId}:projects:".config('cache.versions.projects');
     }
 
     public static function projectTasks(int $projectId): string
     {
-        return "project:{$projectId}:tasks:" . config('cache.versions.tasks');
+        return "project:{$projectId}:tasks:".config('cache.versions.tasks');
     }
 }

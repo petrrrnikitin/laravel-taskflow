@@ -15,8 +15,10 @@ readonly class ProjectService
 {
     public function __construct(
         private ProjectRepositoryInterface $projects,
-    ) {}
+    ) {
+    }
 
+    /** @return Collection<int, Project> */
     public function getForUser(User $user): Collection
     {
         return Cache::store('redis')->tags(CacheKeys::userProjects($user->id))

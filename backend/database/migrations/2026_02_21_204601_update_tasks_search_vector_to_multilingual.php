@@ -3,8 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\DB;
 
-return new class extends Migration
-{
+return new class () extends Migration {
     public function up(): void
     {
         DB::statement('DROP TRIGGER IF EXISTS tasks_search_vector_update ON tasks');
@@ -22,11 +21,11 @@ return new class extends Migration
             \$\$ LANGUAGE plpgsql;
         ");
 
-        DB::statement("
+        DB::statement('
             CREATE TRIGGER tasks_search_vector_update
             BEFORE INSERT OR UPDATE ON tasks
             FOR EACH ROW EXECUTE FUNCTION tasks_search_vector_fn()
-        ");
+        ');
 
         DB::statement("
             UPDATE tasks SET search_vector =
