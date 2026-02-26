@@ -8,7 +8,9 @@ final readonly class AuthResultDTO
 {
     public function __construct(
         public User $user,
-        public string $token,
+        public string $accessToken,
+        public string $refreshToken,
+        public int $expiresIn,
     ) {
     }
 }

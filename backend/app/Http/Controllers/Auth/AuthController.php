@@ -8,10 +8,15 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\Auth\RegisterRequest;
 use App\Http\Resources\UserResource;
+use App\Models\User;
 use App\Services\AuthService;
+use Illuminate\Auth\AuthenticationException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cookie;
+use Illuminate\Support\Str;
 use OpenApi\Attributes as OA;
+use Symfony\Component\HttpFoundation\Cookie as SymfonyCookie;
 
 class AuthController extends Controller
 {
@@ -44,6 +49,7 @@ class AuthController extends Controller
                     properties: [
                         new OA\Property(property: 'user', ref: '#/components/schemas/UserResource'),
                         new OA\Property(property: 'token', type: 'string', example: '1|abc123'),
+                        new OA\Property(property: 'expires_in', type: 'integer', example: 3600),
                     ],
                 ),
             ),
@@ -53,11 +59,15 @@ class AuthController extends Controller
     public function register(RegisterRequest $request): JsonResponse
     {
         $result = $this->authService->register(RegisterDTO::fromRequest($request));
+        $csrf = Str::random(40);
 
         return response()->json([
-            'user' => new UserResource($result->user),
-            'token' => $result->token,
-        ], 201);
+            'user'       => new UserResource($result->user),
+            'token'      => $result->accessToken,
+            'expires_in' => $result->expiresIn,
+        ], 201)
+            ->withCookie($this->refreshCookie($result->refreshToken))
+            ->withCookie($this->refreshCsrfCookie($csrf));
     }
 
     #[OA\Post(
@@ -82,6 +92,7 @@ class AuthController extends Controller
                     properties: [
                         new OA\Property(property: 'user', ref: '#/components/schemas/UserResource'),
                         new OA\Property(property: 'token', type: 'string', example: '1|abc123'),
+                        new OA\Property(property: 'expires_in', type: 'integer', example: 3600),
                     ],
                 ),
             ),
@@ -92,32 +103,90 @@ class AuthController extends Controller
     public function login(LoginRequest $request): JsonResponse
     {
         $result = $this->authService->login(LoginDTO::fromRequest($request));
+        $csrf = Str::random(40);
 
         return response()->json([
-            'user' => new UserResource($result->user),
-            'token' => $result->token,
-        ]);
+            'user'       => new UserResource($result->user),
+            'token'      => $result->accessToken,
+            'expires_in' => $result->expiresIn,
+        ])
+            ->withCookie($this->refreshCookie($result->refreshToken))
+            ->withCookie($this->refreshCsrfCookie($csrf));
     }
 
     #[OA\Post(
         path: '/auth/logout',
-        summary: 'Logout and revoke current token',
+        summary: 'Logout and revoke all tokens',
         security: [['bearerAuth' => []]],
         tags: ['Auth'],
         responses: [
-            new OA\Response(response: 200, description: 'Logged out successfully'),
+            new OA\Response(response: 204, description: 'Logged out successfully'),
             new OA\Response(response: 401, description: 'Unauthenticated'),
         ],
     )]
     public function logout(Request $request): JsonResponse
     {
         $user = $request->user();
-        if ($user === null) {
-            abort(401);
+
+        if (! $user instanceof User) {
+            return response()->json(['message' => 'Unauthenticated.'], 401);
         }
+
         $this->authService->logout($user);
 
-        return response()->json(['message' => 'Logged out successfully.']);
+        return response()->json(null, 204)
+            ->withCookie(Cookie::forget('refresh_token'))
+            ->withCookie(Cookie::forget('refresh_csrf'));
+    }
+
+    #[OA\Post(
+        path: '/auth/refresh',
+        summary: 'Refresh access token using HttpOnly cookie',
+        tags: ['Auth'],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'New access token issued',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'user', ref: '#/components/schemas/UserResource'),
+                        new OA\Property(property: 'token', type: 'string', example: '1|abc123'),
+                        new OA\Property(property: 'expires_in', type: 'integer', example: 3600),
+                    ],
+                ),
+            ),
+            new OA\Response(response: 401, description: 'Unauthenticated'),
+        ],
+    )]
+    public function refresh(Request $request): JsonResponse
+    {
+        $raw = $request->cookie('refresh_token');
+        $csrfCookie = $request->cookie('refresh_csrf');
+        $csrfHeader = $request->header('X-Refresh-CSRF');
+
+        if (! $raw || ! is_string($raw)) {
+            return response()->json(['message' => 'Unauthenticated.'], 401);
+        }
+
+        if (! is_string($csrfCookie) || ! is_string($csrfHeader) || ! hash_equals($csrfCookie, $csrfHeader)) {
+            return response()->json(['message' => 'CSRF token mismatch.'], 419);
+        }
+
+        try {
+            $result = $this->authService->refresh($raw);
+        } catch (AuthenticationException) {
+            return response()->json(['message' => 'Unauthenticated.'], 401);
+        }
+
+        $csrf = Str::random(40);
+
+        return response()->json([
+            'user'       => new UserResource($result->user),
+            'token'      => $result->accessToken,
+            'expires_in' => $result->expiresIn,
+        ])
+            ->withCookie($this->refreshCookie($result->refreshToken))
+            ->withCookie($this->refreshCsrfCookie($csrf));
     }
 
     #[OA\Get(
@@ -137,5 +206,39 @@ class AuthController extends Controller
     public function me(Request $request): UserResource
     {
         return new UserResource($request->user());
+    }
+
+    private function refreshCookie(string $token): SymfonyCookie
+    {
+        $minutes = (int) config('sanctum.refresh_token_ttl') * 24 * 60;
+
+        return cookie(
+            'refresh_token',
+            $token,
+            $minutes,
+            '/',
+            null,
+            config('session.secure'),
+            true,
+            false,
+            'Strict',
+        );
+    }
+
+    private function refreshCsrfCookie(string $token): SymfonyCookie
+    {
+        $minutes = (int) config('sanctum.refresh_token_ttl') * 24 * 60;
+
+        return cookie(
+            'refresh_csrf',
+            $token,
+            $minutes,
+            '/',
+            null,
+            config('session.secure'),
+            false,
+            false,
+            'Strict',
+        );
     }
 }

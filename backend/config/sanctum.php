@@ -51,6 +51,20 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Token TTLs
+    |--------------------------------------------------------------------------
+    |
+    | Access token lifetime in minutes and refresh token lifetime in days.
+    | Override via ACCESS_TOKEN_TTL / REFRESH_TOKEN_TTL env variables.
+    |
+    */
+
+    'access_token_ttl'  => (int) env('ACCESS_TOKEN_TTL', 60),
+
+    'refresh_token_ttl' => (int) env('REFRESH_TOKEN_TTL', 30),
+
+    /*
+    |--------------------------------------------------------------------------
     | Token Prefix
     |--------------------------------------------------------------------------
     |
