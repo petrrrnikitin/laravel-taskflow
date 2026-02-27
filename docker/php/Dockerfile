@@ -1,3 +1,16 @@
+# ─── Stage 1: Build frontend assets ──────────────────────────────────────────
+FROM node:22-alpine AS frontend-builder
+
+WORKDIR /app
+
+# Устанавливаем зависимости отдельным слоем — кэш не инвалидируется при изменении кода
+COPY ./backend/package*.json ./
+RUN npm ci
+
+COPY ./backend/ .
+RUN npm run build
+
+# ─── Stage 2: PHP application ─────────────────────────────────────────────────
 FROM php:8.5-fpm
 
 WORKDIR /var/www
@@ -17,6 +30,9 @@ RUN apt-get update && apt-get install -y \
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 COPY ./backend/ .
+
+# Накладываем скомпилированные фронтенд-ассеты (public/build в .gitignore)
+COPY --from=frontend-builder /app/public/build ./public/build
 
 RUN composer install --no-dev --optimize-autoloader
 
