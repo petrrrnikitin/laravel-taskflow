@@ -3,8 +3,7 @@ import client from './client'
 let isRefreshing = false
 let queue = []
 
-const flushQueue = (err, token) =>
-    queue.splice(0).forEach(p => (err ? p.reject(err) : p.resolve(token)))
+const flushQueue = (err, token) => queue.splice(0).forEach((p) => (err ? p.reject(err) : p.resolve(token)))
 
 export function setupAuthInterceptors(router) {
     client.interceptors.response.use(null, async (error) => {
@@ -15,18 +14,16 @@ export function setupAuthInterceptors(router) {
         } catch {
             pathname = String(error.config?.url ?? '')
         }
-        const skipRefresh = ['/auth/login', '/auth/register', '/auth/refresh']
-            .some(path => pathname.includes(path))
+        const skipRefresh = ['/auth/login', '/auth/register', '/auth/refresh'].some((path) => pathname.includes(path))
         if (status !== 401 || error.config?._retry || skipRefresh) {
             return Promise.reject(error)
         }
         if (isRefreshing) {
-            return new Promise((resolve, reject) => queue.push({ resolve, reject }))
-                .then(token => {
-                    error.config.headers = error.config.headers ?? {}
-                    error.config.headers.Authorization = `Bearer ${token}`
-                    return client(error.config)
-                })
+            return new Promise((resolve, reject) => queue.push({ resolve, reject })).then((token) => {
+                error.config.headers = error.config.headers ?? {}
+                error.config.headers.Authorization = `Bearer ${token}`
+                return client(error.config)
+            })
         }
         isRefreshing = true
         error.config._retry = true

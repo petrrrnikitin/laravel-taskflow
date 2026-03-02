@@ -1,0 +1,145 @@
+<script setup>
+import { ref, computed, onMounted, onUnmounted, onBeforeUnmount } from 'vue'
+import { useRoute, RouterLink } from 'vue-router'
+import AppLayout from '../layouts/AppLayout.vue'
+import TaskCard from '../components/TaskCard.vue'
+import CreateTaskModal from '../components/CreateTaskModal.vue'
+import { useProjectsStore } from '../stores/projects'
+import { useTasksStore } from '../stores/tasks'
+import client from '../http/client'
+
+const route = useRoute()
+const projectId = Number(route.params.projectId)
+
+const projectsStore = useProjectsStore()
+const tasksStore = useTasksStore()
+
+const project = computed(() => projectsStore.findProject(projectId))
+const members = ref([])
+const showModal = ref(false)
+const loadError = ref(null)
+
+const columns = [
+    {
+        label: 'Todo',
+        status: 'todo',
+        accent: 'border-slate-300',
+        bg: 'bg-slate-100/70',
+        dot: 'bg-slate-400',
+        text: 'text-slate-600',
+    },
+    {
+        label: 'In Progress',
+        status: 'in_progress',
+        accent: 'border-blue-400',
+        bg: 'bg-blue-50/70',
+        dot: 'bg-blue-500',
+        text: 'text-blue-700',
+    },
+    {
+        label: 'Done',
+        status: 'done',
+        accent: 'border-emerald-400',
+        bg: 'bg-emerald-50/70',
+        dot: 'bg-emerald-500',
+        text: 'text-emerald-700',
+    },
+]
+
+let abortController = null
+
+onMounted(async () => {
+    abortController = new AbortController()
+    const signal = abortController.signal
+    try {
+        if (!project.value) await projectsStore.fetchProject(projectId)
+        const [, res] = await Promise.all([
+            tasksStore.fetchTasks(projectId),
+            client.get(`/projects/${projectId}/members`, { signal }),
+        ])
+        if (!signal.aborted) members.value = res.data.data
+    } catch (e) {
+        if (e.code !== 'ERR_CANCELED') loadError.value = 'Failed to load project data.'
+    }
+})
+
+onBeforeUnmount(() => abortController?.abort())
+onUnmounted(() => tasksStore.clear())
+</script>
+
+<template>
+    <AppLayout>
+        <div class="mx-auto max-w-6xl">
+            <RouterLink
+                to="/projects"
+                class="mb-5 inline-flex items-center gap-1 text-sm text-gray-400 transition-colors hover:text-gray-700"
+                >← Projects
+            </RouterLink>
+
+            <p v-if="loadError" role="alert" class="mb-5 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-600">
+                {{ loadError }}
+            </p>
+
+            <div class="mb-7 flex items-start justify-between gap-4">
+                <template v-if="project">
+                    <div>
+                        <h1 class="text-2xl font-bold text-gray-900">{{ project.name }}</h1>
+                        <p v-if="project.description" class="mt-1 text-sm leading-relaxed text-gray-500">
+                            {{ project.description }}
+                        </p>
+                    </div>
+                </template>
+                <template v-else>
+                    <div>
+                        <div class="mb-2 h-8 w-56 animate-pulse rounded-lg bg-gray-200"></div>
+                        <div class="h-4 w-80 animate-pulse rounded bg-gray-100"></div>
+                    </div>
+                </template>
+                <button
+                    class="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-blue-700"
+                    @click="showModal = true"
+                >
+                    <span class="text-base leading-none">+</span> New task
+                </button>
+            </div>
+
+            <div v-if="tasksStore.loading" class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                <div
+                    v-for="i in 3"
+                    :key="i"
+                    class="h-48 animate-pulse rounded-xl border border-gray-100 bg-white p-4"
+                ></div>
+            </div>
+
+            <div v-else class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                <div
+                    v-for="col in columns"
+                    :key="col.status"
+                    class="flex min-h-48 flex-col gap-2 rounded-xl border-t-[3px] p-4"
+                    :class="[col.bg, col.accent]"
+                >
+                    <div class="mb-2 flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <span class="h-2 w-2 shrink-0 rounded-full" :class="col.dot"></span>
+                            <h2 class="text-xs font-semibold tracking-widest uppercase" :class="col.text">
+                                {{ col.label }}
+                            </h2>
+                        </div>
+                        <span class="rounded-md bg-white/70 px-1.5 py-0.5 text-xs font-medium text-gray-500">{{
+                            tasksStore.byStatus[col.status].length
+                        }}</span>
+                    </div>
+
+                    <TaskCard
+                        v-for="task in tasksStore.byStatus[col.status]"
+                        :key="task.id"
+                        :task="task"
+                        :project-id="projectId"
+                    />
+                </div>
+            </div>
+        </div>
+
+        <CreateTaskModal v-if="showModal" :project-id="projectId" :members="members" @close="showModal = false" />
+    </AppLayout>
+</template>

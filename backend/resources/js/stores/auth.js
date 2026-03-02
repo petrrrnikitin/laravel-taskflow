@@ -3,7 +3,7 @@ import { defineStore } from 'pinia'
 import client from '../http/client'
 
 export const useAuthStore = defineStore('auth', () => {
-    const user        = ref(null)
+    const user = ref(null)
     const accessToken = ref(null)
     const isAuthenticated = computed(() => !!accessToken.value)
 
@@ -28,7 +28,11 @@ export const useAuthStore = defineStore('auth', () => {
     }
 
     async function boot() {
-        try { await refresh() } catch { clearAuth() }
+        try {
+            await refresh()
+        } catch {
+            clearAuth()
+        }
     }
 
     async function login(email, password, { signal } = {}) {
@@ -37,14 +41,23 @@ export const useAuthStore = defineStore('auth', () => {
     }
 
     async function register(name, email, password, passwordConfirmation, { signal } = {}) {
-        const { data } = await client.post('/auth/register', {
-            name, email, password, password_confirmation: passwordConfirmation,
-        }, { signal })
+        const { data } = await client.post(
+            '/auth/register',
+            {
+                name,
+                email,
+                password,
+                password_confirmation: passwordConfirmation,
+            },
+            { signal },
+        )
         setAuth(data)
     }
 
     async function logout() {
-        try { await client.post('/auth/logout') } catch {}
+        try {
+            await client.post('/auth/logout')
+        } catch {}
         clearAuth()
     }
 
