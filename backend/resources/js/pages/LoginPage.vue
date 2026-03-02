@@ -1,13 +1,13 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { useAuthStore }   from '../stores/auth'
-import { useAuthSubmit }  from '../composables/useAuthSubmit'
+import { useAuthStore } from '../stores/auth'
+import { useAuthSubmit } from '../composables/useAuthSubmit'
 
 const router = useRouter()
-const auth   = useAuthStore()
+const auth = useAuthStore()
 
-const email    = ref('')
+const email = ref('')
 const password = ref('')
 
 const { loading, error, execute } = useAuthSubmit()
@@ -15,58 +15,76 @@ const { loading, error, execute } = useAuthSubmit()
 async function submit() {
     await execute(async (signal) => {
         await auth.login(email.value, password.value, { signal })
-        router.push('/dashboard')
+        router.replace('/projects')
     })
 }
 </script>
 
 <template>
-    <div class="min-h-screen flex items-center justify-center bg-gray-50">
-        <div class="w-full max-w-md bg-white rounded-xl shadow-sm border border-gray-200 p-8">
-            <h1 class="text-2xl font-bold text-gray-900 mb-6">Sign in to TaskFlow</h1>
-
-            <form class="space-y-4" @submit.prevent="submit">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1" for="email">Email</label>
-                    <input
-                        id="email"
-                        v-model="email"
-                        type="email"
-                        required
-                        autocomplete="email"
-                        class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1" for="password">Password</label>
-                    <input
-                        id="password"
-                        v-model="password"
-                        type="password"
-                        required
-                        autocomplete="current-password"
-                        class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                </div>
-
-                <p v-if="error" role="alert" aria-live="polite" class="text-sm text-red-600 whitespace-pre-line">{{ error }}</p>
-
-                <button
-                    type="submit"
-                    :disabled="loading"
-                    :aria-busy="loading"
-                    :aria-disabled="loading"
-                    class="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-medium py-2 rounded-lg text-sm transition-colors"
+    <div class="flex min-h-screen items-center justify-center bg-slate-50 px-4">
+        <div class="w-full max-w-md">
+            <div class="mb-8 text-center">
+                <span class="text-3xl font-bold tracking-tight text-gray-900"
+                    >Task<span class="text-blue-600">Flow</span></span
                 >
-                    {{ loading ? 'Signing in…' : 'Sign in' }}
-                </button>
-            </form>
+                <p class="mt-1 text-sm text-gray-500">Sign in to your account</p>
+            </div>
 
-            <p class="mt-4 text-center text-sm text-gray-600">
-                Don't have an account?
-                <router-link to="/register" class="text-blue-600 hover:underline">Register</router-link>
-            </p>
+            <div class="rounded-2xl border border-gray-200 bg-white p-8 shadow-sm">
+                <form class="space-y-4" @submit.prevent="submit">
+                    <div>
+                        <label class="mb-1.5 block text-sm font-medium text-gray-700" for="email">Email</label>
+                        <input
+                            id="email"
+                            v-model="email"
+                            type="email"
+                            required
+                            autocomplete="email"
+                            placeholder="you@example.com"
+                            class="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm placeholder:text-gray-400 focus:border-transparent focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                        />
+                    </div>
+
+                    <div>
+                        <label class="mb-1.5 block text-sm font-medium text-gray-700" for="password">Password</label>
+                        <input
+                            id="password"
+                            v-model="password"
+                            type="password"
+                            required
+                            autocomplete="current-password"
+                            placeholder="••••••••"
+                            class="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm placeholder:text-gray-400 focus:border-transparent focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                        />
+                    </div>
+
+                    <p
+                        v-if="error"
+                        role="alert"
+                        aria-live="polite"
+                        class="rounded-lg bg-red-50 px-3 py-2 text-sm whitespace-pre-line text-red-600"
+                    >
+                        {{ error }}
+                    </p>
+
+                    <button
+                        type="submit"
+                        :disabled="loading"
+                        :aria-busy="loading"
+                        :aria-disabled="loading"
+                        class="mt-2 w-full rounded-lg bg-blue-600 py-2.5 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:opacity-50"
+                    >
+                        {{ loading ? 'Signing in…' : 'Sign in' }}
+                    </button>
+                </form>
+
+                <p class="mt-5 text-center text-sm text-gray-500">
+                    Don't have an account?
+                    <router-link to="/register" class="font-medium text-blue-600 hover:text-blue-700"
+                        >Register</router-link
+                    >
+                </p>
+            </div>
         </div>
     </div>
 </template>

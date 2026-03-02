@@ -11,9 +11,8 @@ export function useApiError() {
             error.value = Object.values(fieldErrors).flat().join('\n')
             return
         }
-        error.value = (typeof data?.message === 'string' ? data.message : null)
-            ?? e?.message
-            ?? 'An unexpected error occurred'
+        error.value =
+            (typeof data?.message === 'string' ? data.message : null) ?? e?.message ?? 'An unexpected error occurred'
     }
 
     function clearError() {
