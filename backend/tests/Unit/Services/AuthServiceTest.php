@@ -12,6 +12,7 @@ use App\Services\AuthService;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Hash;
+use Laravel\Sanctum\NewAccessToken;
 use Laravel\Sanctum\PersonalAccessToken;
 use Mockery;
 use Mockery\MockInterface;
@@ -41,24 +42,23 @@ class AuthServiceTest extends TestCase
     {
         $dto = new RegisterDTO('John', 'john@example.com', 'secret');
 
-        $accessToken = new class () {
-            public string $plainTextToken = 'access-token';
-        };
-        $refreshToken = new class () {
-            public string $plainTextToken = 'refresh-token';
-        };
+        $accessToken = Mockery::mock(NewAccessToken::class);
+        $accessToken->plainTextToken = 'access-token';
+        $refreshToken = Mockery::mock(NewAccessToken::class);
+        $refreshToken->plainTextToken = 'refresh-token';
 
         $user = Mockery::mock(User::class);
-        $user->shouldReceive('createToken')
-            ->with('access', ['*'], Mockery::type(Carbon::class))
-            ->once()
-            ->andReturn($accessToken);
-        $user->shouldReceive('createToken')
-            ->with('refresh', ['refresh'], Mockery::type(Carbon::class))
-            ->once()
-            ->andReturn($refreshToken);
 
         $this->userRepo->shouldReceive('create')->with($dto)->once()->andReturn($user);
+
+        $this->tokenRepo->shouldReceive('createToken')
+            ->with($user, 'access', ['*'], Mockery::type(Carbon::class))
+            ->once()
+            ->andReturn($accessToken);
+        $this->tokenRepo->shouldReceive('createToken')
+            ->with($user, 'refresh', ['refresh'], Mockery::type(Carbon::class))
+            ->once()
+            ->andReturn($refreshToken);
 
         $result = $this->service->register($dto);
 
@@ -74,29 +74,26 @@ class AuthServiceTest extends TestCase
         $plainPassword = 'secret';
         $hashedPassword = Hash::make($plainPassword);
 
-        $accessToken = new class () {
-            public string $plainTextToken = 'access-token';
-        };
-        $refreshToken = new class () {
-            public string $plainTextToken = 'refresh-token';
-        };
-
-        $tokensRelation = Mockery::mock(['delete' => null]);
+        $accessToken = Mockery::mock(NewAccessToken::class);
+        $accessToken->plainTextToken = 'access-token';
+        $refreshToken = Mockery::mock(NewAccessToken::class);
+        $refreshToken->plainTextToken = 'refresh-token';
 
         $user = Mockery::mock(User::class);
         $user->shouldReceive('getAttribute')->with('password')->andReturn($hashedPassword);
-        $user->shouldReceive('tokens')->andReturn($tokensRelation);
-        $user->shouldReceive('createToken')
-            ->with('access', ['*'], Mockery::type(Carbon::class))
-            ->once()
-            ->andReturn($accessToken);
-        $user->shouldReceive('createToken')
-            ->with('refresh', ['refresh'], Mockery::type(Carbon::class))
-            ->once()
-            ->andReturn($refreshToken);
 
         $dto = new LoginDTO('john@example.com', $plainPassword);
         $this->userRepo->shouldReceive('findByEmail')->with($dto->email)->once()->andReturn($user);
+
+        $this->tokenRepo->shouldReceive('deleteForUser')->with($user)->once();
+        $this->tokenRepo->shouldReceive('createToken')
+            ->with($user, 'access', ['*'], Mockery::type(Carbon::class))
+            ->once()
+            ->andReturn($accessToken);
+        $this->tokenRepo->shouldReceive('createToken')
+            ->with($user, 'refresh', ['refresh'], Mockery::type(Carbon::class))
+            ->once()
+            ->andReturn($refreshToken);
 
         $result = $this->service->login($dto);
 
@@ -130,11 +127,9 @@ class AuthServiceTest extends TestCase
 
     public function test_logout_deletes_all_tokens(): void
     {
-        $tokensRelation = Mockery::mock(['delete' => null]);
-        $tokensRelation->shouldReceive('delete')->once();
-
         $user = Mockery::mock(User::class);
-        $user->shouldReceive('tokens')->once()->andReturn($tokensRelation);
+
+        $this->tokenRepo->shouldReceive('deleteForUser')->with($user)->once();
 
         $this->service->logout($user);
     }
@@ -143,21 +138,10 @@ class AuthServiceTest extends TestCase
     {
         $user = Mockery::mock(User::class);
 
-        $accessToken = new class () {
-            public string $plainTextToken = 'new-access-token';
-        };
-        $refreshToken = new class () {
-            public string $plainTextToken = 'new-refresh-token';
-        };
-
-        $user->shouldReceive('createToken')
-            ->with('access', ['*'], Mockery::type(Carbon::class))
-            ->once()
-            ->andReturn($accessToken);
-        $user->shouldReceive('createToken')
-            ->with('refresh', ['refresh'], Mockery::type(Carbon::class))
-            ->once()
-            ->andReturn($refreshToken);
+        $accessToken = Mockery::mock(NewAccessToken::class);
+        $accessToken->plainTextToken = 'new-access-token';
+        $refreshToken = Mockery::mock(NewAccessToken::class);
+        $refreshToken->plainTextToken = 'new-refresh-token';
 
         $token = Mockery::mock(PersonalAccessToken::class);
         $token->shouldReceive('getAttribute')->with('tokenable')->andReturn($user);
@@ -166,6 +150,14 @@ class AuthServiceTest extends TestCase
             ->with('valid-raw-token')
             ->once()
             ->andReturn($token);
+        $this->tokenRepo->shouldReceive('createToken')
+            ->with($user, 'access', ['*'], Mockery::type(Carbon::class))
+            ->once()
+            ->andReturn($accessToken);
+        $this->tokenRepo->shouldReceive('createToken')
+            ->with($user, 'refresh', ['refresh'], Mockery::type(Carbon::class))
+            ->once()
+            ->andReturn($refreshToken);
 
         $result = $this->service->refresh('valid-raw-token');
 

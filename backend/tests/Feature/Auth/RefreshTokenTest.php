@@ -7,6 +7,7 @@ use App\Repositories\Contracts\TokenRepositoryInterface;
 use App\Repositories\Contracts\UserRepositoryInterface;
 use Illuminate\Support\Carbon;
 use Illuminate\Testing\TestResponse;
+use Laravel\Sanctum\NewAccessToken;
 use Laravel\Sanctum\PersonalAccessToken;
 use Laravel\Sanctum\Sanctum;
 use Mockery;
@@ -61,14 +62,6 @@ class RefreshTokenTest extends TestCase
     public function test_refresh_returns_new_access_token_and_sets_rotated_cookie(): void
     {
         $user = $this->makeAuthUser();
-        $user->shouldReceive('createToken')
-            ->with('access', ['*'], Mockery::type(Carbon::class))
-            ->once()
-            ->andReturn((object) ['plainTextToken' => 'new-access-token']);
-        $user->shouldReceive('createToken')
-            ->with('refresh', ['refresh'], Mockery::type(Carbon::class))
-            ->once()
-            ->andReturn((object) ['plainTextToken' => 'new-refresh-token']);
 
         $token = Mockery::mock(PersonalAccessToken::class);
         $token->shouldReceive('getAttribute')->with('tokenable')->andReturn($user);
@@ -78,6 +71,18 @@ class RefreshTokenTest extends TestCase
             ->once()
             ->with('valid-refresh-token')
             ->andReturn($token);
+        $accessToken = Mockery::mock(NewAccessToken::class);
+        $accessToken->plainTextToken = 'new-access-token';
+        $refreshToken = Mockery::mock(NewAccessToken::class);
+        $refreshToken->plainTextToken = 'new-refresh-token';
+        $tokenRepo->shouldReceive('createToken')
+            ->with($user, 'access', ['*'], Mockery::type(Carbon::class))
+            ->once()
+            ->andReturn($accessToken);
+        $tokenRepo->shouldReceive('createToken')
+            ->with($user, 'refresh', ['refresh'], Mockery::type(Carbon::class))
+            ->once()
+            ->andReturn($refreshToken);
         $this->bindTokenRepo($tokenRepo);
         $this->bindUserRepo(Mockery::mock(UserRepositoryInterface::class));
 
@@ -137,13 +142,12 @@ class RefreshTokenTest extends TestCase
     public function test_logout_revokes_tokens_and_forgets_refresh_cookie(): void
     {
         $user = $this->makeAuthUser();
-        $tokensRelation = Mockery::mock();
-        $tokensRelation->shouldReceive('delete')->once();
-        $user->shouldReceive('tokens')->once()->andReturn($tokensRelation);
 
         Sanctum::actingAs($user);
 
-        $this->bindTokenRepo(Mockery::mock(TokenRepositoryInterface::class));
+        $tokenRepo = Mockery::mock(TokenRepositoryInterface::class);
+        $tokenRepo->shouldReceive('deleteForUser')->with($user)->once();
+        $this->bindTokenRepo($tokenRepo);
         $this->bindUserRepo(Mockery::mock(UserRepositoryInterface::class));
 
         $response = $this
@@ -163,14 +167,6 @@ class RefreshTokenTest extends TestCase
     public function test_refresh_token_cookie_has_correct_security_attributes(): void
     {
         $user = $this->makeAuthUser();
-        $user->shouldReceive('createToken')
-            ->with('access', ['*'], Mockery::type(Carbon::class))
-            ->once()
-            ->andReturn((object) ['plainTextToken' => 'new-access-token']);
-        $user->shouldReceive('createToken')
-            ->with('refresh', ['refresh'], Mockery::type(Carbon::class))
-            ->once()
-            ->andReturn((object) ['plainTextToken' => 'new-refresh-token']);
 
         $token = Mockery::mock(PersonalAccessToken::class);
         $token->shouldReceive('getAttribute')->with('tokenable')->andReturn($user);
@@ -180,6 +176,18 @@ class RefreshTokenTest extends TestCase
             ->once()
             ->with('cookie-attrs-token')
             ->andReturn($token);
+        $accessToken2 = Mockery::mock(NewAccessToken::class);
+        $accessToken2->plainTextToken = 'new-access-token';
+        $refreshToken2 = Mockery::mock(NewAccessToken::class);
+        $refreshToken2->plainTextToken = 'new-refresh-token';
+        $tokenRepo->shouldReceive('createToken')
+            ->with($user, 'access', ['*'], Mockery::type(Carbon::class))
+            ->once()
+            ->andReturn($accessToken2);
+        $tokenRepo->shouldReceive('createToken')
+            ->with($user, 'refresh', ['refresh'], Mockery::type(Carbon::class))
+            ->once()
+            ->andReturn($refreshToken2);
         $this->bindTokenRepo($tokenRepo);
         $this->bindUserRepo(Mockery::mock(UserRepositoryInterface::class));
 
