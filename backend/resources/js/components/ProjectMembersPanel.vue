@@ -115,7 +115,7 @@ async function removeMember(userId) {
                     </button>
                 </li>
             </ul>
-            <p v-if="members.length === 0" class="px-4 py-8 text-center text-sm italic text-gray-400">
+            <p v-if="members.length === 0" class="px-4 py-8 text-center text-sm text-gray-400 italic">
                 No members yet.
             </p>
         </div>
@@ -136,9 +136,7 @@ async function removeMember(userId) {
                     <div
                         class="flex items-center gap-3 px-3 py-2 transition-colors"
                         :class="
-                            memberIds.has(item.id)
-                                ? 'cursor-default opacity-50'
-                                : 'cursor-pointer hover:bg-gray-50'
+                            memberIds.has(item.id) ? 'cursor-default opacity-50' : 'cursor-pointer hover:bg-gray-50'
                         "
                     >
                         <div

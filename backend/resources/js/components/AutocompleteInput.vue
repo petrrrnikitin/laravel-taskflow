@@ -55,10 +55,10 @@ function select(item) {
             type="text"
             :placeholder="placeholder"
             :disabled="disabled"
-            class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-50"
+            class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm placeholder-gray-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none disabled:opacity-50"
             @blur="onBlur"
         />
-        <div v-if="loading" class="absolute right-3 top-1/2 -translate-y-1/2">
+        <div v-if="loading" class="absolute top-1/2 right-3 -translate-y-1/2">
             <svg class="h-4 w-4 animate-spin text-gray-400" fill="none" viewBox="0 0 24 24">
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
@@ -68,11 +68,7 @@ function select(item) {
             v-if="results.length"
             class="absolute z-10 mt-1 w-full overflow-hidden rounded-lg border border-gray-200 bg-white shadow-lg"
         >
-            <li
-                v-for="(item, i) in results"
-                :key="i"
-                @click="select(item)"
-            >
+            <li v-for="(item, i) in results" :key="i" @click="select(item)">
                 <slot name="result" :item="item" />
             </li>
         </ul>
