@@ -11,6 +11,7 @@ use App\Models\Task;
 use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Collection as BaseCollection;
 
 interface TaskRepositoryInterface
 {
@@ -29,4 +30,15 @@ interface TaskRepositoryInterface
     public function changeStatus(Task $task, TaskStatus $status): Task;
 
     public function delete(Task $task): void;
+
+    /** @return array<string, int> */
+    public function countByStatusForProject(Project $project): array;
+
+    /** @return array<string, int> */
+    public function countByPriorityForProject(Project $project): array;
+
+    public function countOverdueForProject(Project $project): int;
+
+    /** @return BaseCollection<int, object{id: int, name: string, avatar: string|null, closed_tasks_count: int}> */
+    public function topAssigneesForProject(Project $project, int $limit): BaseCollection;
 }

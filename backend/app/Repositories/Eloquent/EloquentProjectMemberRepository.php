@@ -35,4 +35,9 @@ class EloquentProjectMemberRepository implements ProjectMemberRepositoryInterfac
     {
         return $project->members()->where('user_id', $user->id)->exists();
     }
+
+    public function countForProject(Project $project): int
+    {
+        return $project->members()->count();
+    }
 }

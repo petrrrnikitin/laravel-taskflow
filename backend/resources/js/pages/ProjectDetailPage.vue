@@ -4,6 +4,7 @@ import { useRoute, RouterLink } from 'vue-router'
 import AppLayout from '../layouts/AppLayout.vue'
 import TaskCard from '../components/TaskCard.vue'
 import CreateTaskModal from '../components/CreateTaskModal.vue'
+import ProjectMembersPanel from '../components/ProjectMembersPanel.vue'
 import { useProjectsStore } from '../stores/projects'
 import { useTasksStore } from '../stores/tasks'
 import client from '../http/client'
@@ -18,6 +19,7 @@ const project = computed(() => projectsStore.findProject(projectId))
 const members = ref([])
 const showModal = ref(false)
 const loadError = ref(null)
+const activeTab = ref('board')
 
 const columns = [
     {
@@ -103,41 +105,66 @@ onUnmounted(() => tasksStore.clear())
                 </button>
             </div>
 
-            <div v-if="tasksStore.loading" class="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                <div
-                    v-for="i in 3"
-                    :key="i"
-                    class="h-48 animate-pulse rounded-xl border border-gray-100 bg-white p-4"
-                ></div>
+            <div class="mb-5 border-b border-gray-200">
+                <nav class="-mb-px flex gap-1">
+                    <button
+                        v-for="tab in [
+                            { id: 'board', label: 'Board' },
+                            { id: 'members', label: 'Members' },
+                        ]"
+                        :key="tab.id"
+                        class="border-b-2 px-4 py-2.5 text-sm font-medium transition-colors"
+                        :class="
+                            activeTab === tab.id
+                                ? 'border-blue-600 text-blue-600'
+                                : 'border-transparent text-gray-500 hover:text-gray-700'
+                        "
+                        @click="activeTab = tab.id"
+                    >
+                        {{ tab.label }}
+                    </button>
+                </nav>
             </div>
 
-            <div v-else class="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                <div
-                    v-for="col in columns"
-                    :key="col.status"
-                    class="flex min-h-48 flex-col gap-2 rounded-xl border-t-[3px] p-4"
-                    :class="[col.bg, col.accent]"
-                >
-                    <div class="mb-2 flex items-center justify-between">
-                        <div class="flex items-center gap-2">
-                            <span class="h-2 w-2 shrink-0 rounded-full" :class="col.dot"></span>
-                            <h2 class="text-xs font-semibold tracking-widest uppercase" :class="col.text">
-                                {{ col.label }}
-                            </h2>
-                        </div>
-                        <span class="rounded-md bg-white/70 px-1.5 py-0.5 text-xs font-medium text-gray-500">{{
-                            tasksStore.byStatus[col.status].length
-                        }}</span>
-                    </div>
+            <div v-show="activeTab === 'board'">
+                <div v-if="tasksStore.loading" class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                    <div
+                        v-for="i in 3"
+                        :key="i"
+                        class="h-48 animate-pulse rounded-xl border border-gray-100 bg-white p-4"
+                    ></div>
+                </div>
 
-                    <TaskCard
-                        v-for="task in tasksStore.byStatus[col.status]"
-                        :key="task.id"
-                        :task="task"
-                        :project-id="projectId"
-                    />
+                <div v-else class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                    <div
+                        v-for="col in columns"
+                        :key="col.status"
+                        class="flex min-h-48 flex-col gap-2 rounded-xl border-t-[3px] p-4"
+                        :class="[col.bg, col.accent]"
+                    >
+                        <div class="mb-2 flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <span class="h-2 w-2 shrink-0 rounded-full" :class="col.dot"></span>
+                                <h2 class="text-xs font-semibold tracking-widest uppercase" :class="col.text">
+                                    {{ col.label }}
+                                </h2>
+                            </div>
+                            <span class="rounded-md bg-white/70 px-1.5 py-0.5 text-xs font-medium text-gray-500">{{
+                                tasksStore.byStatus[col.status].length
+                            }}</span>
+                        </div>
+
+                        <TaskCard
+                            v-for="task in tasksStore.byStatus[col.status]"
+                            :key="task.id"
+                            :task="task"
+                            :project-id="projectId"
+                        />
+                    </div>
                 </div>
             </div>
+
+            <ProjectMembersPanel v-if="activeTab === 'members'" :project-id="projectId" />
         </div>
 
         <CreateTaskModal v-if="showModal" :project-id="projectId" :members="members" @close="showModal = false" />

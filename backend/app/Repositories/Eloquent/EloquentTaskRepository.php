@@ -12,6 +12,8 @@ use App\Models\User;
 use App\Repositories\Contracts\TaskRepositoryInterface;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection as BaseCollection;
 
 class EloquentTaskRepository implements TaskRepositoryInterface
 {
@@ -106,5 +108,54 @@ class EloquentTaskRepository implements TaskRepositoryInterface
     public function delete(Task $task): void
     {
         $task->delete();
+    }
+
+    /** @return array<string, int> */
+    public function countByStatusForProject(Project $project): array
+    {
+        return Task::query()
+            ->where('project_id', $project->id)
+            ->selectRaw('status, COUNT(*) as count')
+            ->groupBy('status')
+            ->pluck('count', 'status')
+            ->map(fn ($c) => (int) $c)
+            ->all();
+    }
+
+    /** @return array<string, int> */
+    public function countByPriorityForProject(Project $project): array
+    {
+        return Task::query()
+            ->where('project_id', $project->id)
+            ->selectRaw('priority, COUNT(*) as count')
+            ->groupBy('priority')
+            ->pluck('count', 'priority')
+            ->map(fn ($c) => (int) $c)
+            ->all();
+    }
+
+    public function countOverdueForProject(Project $project): int
+    {
+        return Task::query()
+            ->where('project_id', $project->id)
+            ->whereNotNull('due_date')
+            ->where('due_date', '<', Carbon::today())
+            ->whereNot('status', TaskStatus::Done)
+            ->count();
+    }
+
+    /** @return BaseCollection<int, object{id: int, name: string, avatar: string|null, closed_tasks_count: int}> */
+    public function topAssigneesForProject(Project $project, int $limit): BaseCollection
+    {
+        /** @var BaseCollection<int, object{id: int, name: string, avatar: string|null, closed_tasks_count: int}> */
+        return Task::query()
+            ->join('users', 'tasks.assignee_id', '=', 'users.id')
+            ->where('tasks.project_id', $project->id)
+            ->where('tasks.status', TaskStatus::Done->value)
+            ->groupBy('users.id', 'users.name', 'users.avatar')
+            ->selectRaw('users.id, users.name, users.avatar, COUNT(*) as closed_tasks_count')
+            ->orderByDesc('closed_tasks_count')
+            ->limit($limit)
+            ->get();
     }
 }
