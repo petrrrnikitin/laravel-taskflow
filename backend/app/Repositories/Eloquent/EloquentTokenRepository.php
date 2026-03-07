@@ -2,8 +2,11 @@
 
 namespace App\Repositories\Eloquent;
 
+use App\Models\User;
 use App\Repositories\Contracts\TokenRepositoryInterface;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Laravel\Sanctum\NewAccessToken;
 use Laravel\Sanctum\PersonalAccessToken;
 
 class EloquentTokenRepository implements TokenRepositoryInterface
@@ -36,5 +39,16 @@ class EloquentTokenRepository implements TokenRepositoryInterface
 
             return $model;
         });
+    }
+
+    public function deleteForUser(User $user): void
+    {
+        $user->tokens()->delete();
+    }
+
+    /** @param array<string> $abilities */
+    public function createToken(User $user, string $name, array $abilities, Carbon $expiresAt): NewAccessToken
+    {
+        return $user->createToken($name, $abilities, $expiresAt);
     }
 }

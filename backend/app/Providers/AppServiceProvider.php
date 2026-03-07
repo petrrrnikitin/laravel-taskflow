@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Config\SanctumConfig;
 use App\Repositories\Contracts\ActivityLogRepositoryInterface;
 use App\Repositories\Contracts\CommentRepositoryInterface;
 use App\Repositories\Contracts\NotificationRepositoryInterface;
@@ -35,6 +36,11 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(NotificationRepositoryInterface::class, EloquentNotificationRepository::class);
         $this->app->bind(ReportRepositoryInterface::class, EloquentReportRepository::class);
         $this->app->bind(TokenRepositoryInterface::class, EloquentTokenRepository::class);
+
+        $this->app->bind(SanctumConfig::class, fn () => new SanctumConfig(
+            accessTokenTtl:  (int) config('sanctum.access_token_ttl'),
+            refreshTokenTtl: (int) config('sanctum.refresh_token_ttl'),
+        ));
     }
 
     public function boot(): void
