@@ -67,6 +67,11 @@ watch([q, status, priority], () => {
     debounceTimer = setTimeout(() => fetchPage(1, false), 300)
 })
 
+function clearFilters() {
+    status.value = ''
+    priority.value = ''
+}
+
 function loadMore() {
     if (!hasMore.value || loading.value) return
     fetchPage(meta.value.current_page + 1, true)
@@ -161,7 +166,7 @@ function loadMore() {
                 <button
                     v-if="status || priority"
                     class="ml-auto text-xs text-gray-400 transition-colors hover:text-gray-600"
-                    @click="status = ''; priority = ''"
+                    @click="clearFilters"
                 >
                     Clear
                 </button>
