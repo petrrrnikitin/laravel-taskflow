@@ -28,6 +28,20 @@ async function logout() {
                 Task<span class="text-blue-600">Flow</span>
             </RouterLink>
             <div class="flex items-center gap-3">
+                <RouterLink
+                    to="/search"
+                    class="text-gray-400 transition-colors hover:text-gray-700"
+                    aria-label="Search tasks"
+                >
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z"
+                        />
+                    </svg>
+                </RouterLink>
                 <div
                     class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-100 text-sm font-semibold text-blue-700 select-none"
                     :title="auth.user?.name"
