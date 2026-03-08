@@ -5,6 +5,7 @@ import AppLayout from '../layouts/AppLayout.vue'
 import TaskCard from '../components/TaskCard.vue'
 import CreateTaskModal from '../components/CreateTaskModal.vue'
 import ProjectMembersPanel from '../components/ProjectMembersPanel.vue'
+import ProjectStatsPanel from '../components/ProjectStatsPanel.vue'
 import { useProjectsStore } from '../stores/projects'
 import { useTasksStore } from '../stores/tasks'
 import client from '../http/client'
@@ -17,9 +18,18 @@ const tasksStore = useTasksStore()
 
 const project = computed(() => projectsStore.findProject(projectId))
 const members = ref([])
+const stats = ref(null)
+const statsLoading = ref(true)
 const showModal = ref(false)
 const loadError = ref(null)
 const activeTab = ref('board')
+
+// PDF report state
+const reportState = ref('idle') // idle | generating | timeout | error
+const reportError = ref(null)
+let reportId = null
+let pollTimer = null
+let pollTimeout = null
 
 const columns = [
     {
@@ -55,18 +65,85 @@ onMounted(async () => {
     const signal = abortController.signal
     try {
         if (!project.value) await projectsStore.fetchProject(projectId)
-        const [, res] = await Promise.all([
+        const [, res, statsRes] = await Promise.all([
             tasksStore.fetchTasks(projectId),
             client.get(`/projects/${projectId}/members`, { signal }),
+            client.get(`/projects/${projectId}/stats`, { signal }).catch(() => null),
         ])
-        if (!signal.aborted) members.value = res.data.data
+        if (!signal.aborted) {
+            members.value = res.data.data
+            if (statsRes) stats.value = statsRes.data.data
+            statsLoading.value = false
+        }
     } catch (e) {
-        if (e.code !== 'ERR_CANCELED') loadError.value = 'Failed to load project data.'
+        if (e.code !== 'ERR_CANCELED') {
+            loadError.value = 'Failed to load project data.'
+            statsLoading.value = false
+        }
     }
 })
 
-onBeforeUnmount(() => abortController?.abort())
+onBeforeUnmount(() => {
+    abortController?.abort()
+    stopPolling()
+})
 onUnmounted(() => tasksStore.clear())
+
+// --- PDF report ---
+
+function stopPolling() {
+    clearInterval(pollTimer)
+    clearTimeout(pollTimeout)
+    pollTimer = null
+    pollTimeout = null
+}
+
+function startPolling() {
+    pollTimeout = setTimeout(() => {
+        stopPolling()
+        reportState.value = 'timeout'
+    }, 60_000)
+
+    let inFlight = false
+    pollTimer = setInterval(async () => {
+        if (inFlight) return
+        inFlight = true
+        try {
+            const response = await client.get(`/projects/${projectId}/reports/${reportId}/download`, {
+                responseType: 'blob',
+            })
+            stopPolling()
+            reportState.value = 'idle'
+            const url = URL.createObjectURL(response.data)
+            const a = document.createElement('a')
+            a.href = url
+            a.download = `project-${projectId}-report.pdf`
+            a.click()
+            URL.revokeObjectURL(url)
+        } catch (e) {
+            if (e.response?.status === 409) return // not ready yet
+            stopPolling()
+            reportState.value = 'error'
+            reportError.value = 'Report generation failed.'
+        } finally {
+            inFlight = false
+        }
+    }, 3_000)
+}
+
+async function exportPdf() {
+    if (reportState.value === 'generating') return
+    reportState.value = 'generating'
+    reportError.value = null
+    try {
+        const { data } = await client.post(`/projects/${projectId}/reports`)
+        reportId = data.data.id
+        startPolling()
+    } catch {
+        reportState.value = 'error'
+        reportError.value = 'Failed to start report generation.'
+    }
+}
 </script>
 
 <template>
@@ -97,12 +174,73 @@ onUnmounted(() => tasksStore.clear())
                         <div class="h-4 w-80 animate-pulse rounded bg-gray-100"></div>
                     </div>
                 </template>
-                <button
-                    class="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-blue-700"
-                    @click="showModal = true"
-                >
-                    <span class="text-base leading-none">+</span> New task
-                </button>
+
+                <div class="flex shrink-0 flex-col items-end gap-1.5">
+                    <div class="flex items-center gap-2">
+                        <!-- Export PDF -->
+                        <button
+                            :disabled="reportState === 'generating'"
+                            class="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 px-3.5 py-2 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-50 disabled:opacity-60"
+                            @click="exportPdf"
+                        >
+                            <!-- Spinner -->
+                            <svg
+                                v-if="reportState === 'generating'"
+                                class="h-4 w-4 animate-spin text-gray-400"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                            >
+                                <circle
+                                    class="opacity-25"
+                                    cx="12"
+                                    cy="12"
+                                    r="10"
+                                    stroke="currentColor"
+                                    stroke-width="4"
+                                />
+                                <path
+                                    class="opacity-75"
+                                    fill="currentColor"
+                                    d="M4 12a8 8 0 018-8v4l3-3-3-3v4a8 8 0 00-8 8h4z"
+                                />
+                            </svg>
+                            <!-- PDF icon -->
+                            <svg v-else class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
+                                />
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M10 13h4M10 17h4M10 9h1"
+                                />
+                            </svg>
+                            <span>{{ reportState === 'generating' ? 'Generating…' : 'Export PDF' }}</span>
+                        </button>
+
+                        <!-- New task -->
+                        <button
+                            class="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-blue-700"
+                            @click="showModal = true"
+                        >
+                            <span class="text-base leading-none">+</span> New task
+                        </button>
+                    </div>
+
+                    <!-- Report status messages -->
+                    <p v-if="reportState === 'timeout'" class="text-xs text-amber-600">
+                        Report timed out.
+                        <button class="underline hover:text-amber-800" @click="exportPdf">Retry</button>
+                    </p>
+                    <p v-else-if="reportState === 'error'" class="text-xs text-red-500">
+                        {{ reportError }}
+                        <button class="underline hover:text-red-700" @click="exportPdf">Retry</button>
+                    </p>
+                </div>
             </div>
 
             <div class="mb-5 border-b border-gray-200">
@@ -111,6 +249,7 @@ onUnmounted(() => tasksStore.clear())
                         v-for="tab in [
                             { id: 'board', label: 'Board' },
                             { id: 'members', label: 'Members' },
+                            { id: 'stats', label: 'Stats' },
                         ]"
                         :key="tab.id"
                         class="border-b-2 px-4 py-2.5 text-sm font-medium transition-colors"
@@ -165,6 +304,8 @@ onUnmounted(() => tasksStore.clear())
             </div>
 
             <ProjectMembersPanel v-if="activeTab === 'members'" :project-id="projectId" />
+
+            <ProjectStatsPanel v-if="activeTab === 'stats'" :stats="stats" :loading="statsLoading" />
         </div>
 
         <CreateTaskModal v-if="showModal" :project-id="projectId" :members="members" @close="showModal = false" />
