@@ -26,7 +26,7 @@ function initial(name) {
         <div class="rounded-xl border border-gray-100 bg-white p-5 shadow-sm">
             <div class="mb-5">
                 <div class="mb-2 flex items-center justify-between">
-                    <span class="text-xs font-semibold uppercase tracking-wider text-gray-400">Completion</span>
+                    <span class="text-xs font-semibold tracking-wider text-gray-400 uppercase">Completion</span>
                     <span class="text-sm font-bold text-gray-700">{{ Math.round(stats.completion_rate) }}%</span>
                 </div>
                 <div class="h-2 w-full overflow-hidden rounded-full bg-gray-100">
@@ -51,7 +51,7 @@ function initial(name) {
                 </div>
                 <div
                     class="flex flex-col items-center rounded-lg border py-3"
-                    :class="stats.tasks.overdue > 0 ? 'bg-red-50 border-red-200' : 'bg-gray-50 border-gray-200'"
+                    :class="stats.tasks.overdue > 0 ? 'border-red-200 bg-red-50' : 'border-gray-200 bg-gray-50'"
                 >
                     <span
                         class="text-2xl font-bold"
@@ -59,17 +59,16 @@ function initial(name) {
                     >
                         {{ stats.tasks.overdue }}
                     </span>
-                    <span
-                        class="mt-0.5 text-xs"
-                        :class="stats.tasks.overdue > 0 ? 'text-red-400' : 'text-gray-400'"
-                    >Overdue</span>
+                    <span class="mt-0.5 text-xs" :class="stats.tasks.overdue > 0 ? 'text-red-400' : 'text-gray-400'"
+                        >Overdue</span
+                    >
                 </div>
             </div>
         </div>
 
         <!-- Top Assignees -->
         <div v-if="stats.top_assignees.length" class="rounded-xl border border-gray-100 bg-white p-5 shadow-sm">
-            <h3 class="mb-4 text-xs font-semibold uppercase tracking-wider text-gray-400">Top Assignees</h3>
+            <h3 class="mb-4 text-xs font-semibold tracking-wider text-gray-400 uppercase">Top Assignees</h3>
             <ul class="space-y-3">
                 <li v-for="user in stats.top_assignees" :key="user.id" class="flex items-center gap-3">
                     <div

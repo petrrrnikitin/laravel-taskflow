@@ -109,10 +109,9 @@ function startPolling() {
         if (inFlight) return
         inFlight = true
         try {
-            const response = await client.get(
-                `/projects/${projectId}/reports/${reportId}/download`,
-                { responseType: 'blob' },
-            )
+            const response = await client.get(`/projects/${projectId}/reports/${reportId}/download`, {
+                responseType: 'blob',
+            })
             stopPolling()
             reportState.value = 'idle'
             const url = URL.createObjectURL(response.data)
@@ -191,19 +190,34 @@ async function exportPdf() {
                                 fill="none"
                                 viewBox="0 0 24 24"
                             >
-                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
-                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4l3-3-3-3v4a8 8 0 00-8 8h4z" />
+                                <circle
+                                    class="opacity-25"
+                                    cx="12"
+                                    cy="12"
+                                    r="10"
+                                    stroke="currentColor"
+                                    stroke-width="4"
+                                />
+                                <path
+                                    class="opacity-75"
+                                    fill="currentColor"
+                                    d="M4 12a8 8 0 018-8v4l3-3-3-3v4a8 8 0 00-8 8h4z"
+                                />
                             </svg>
                             <!-- PDF icon -->
-                            <svg
-                                v-else
-                                class="h-4 w-4"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                            >
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 13h4M10 17h4M10 9h1" />
+                            <svg v-else class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
+                                />
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M10 13h4M10 17h4M10 9h1"
+                                />
                             </svg>
                             <span>{{ reportState === 'generating' ? 'Generating…' : 'Export PDF' }}</span>
                         </button>
