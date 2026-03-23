@@ -1,16 +1,28 @@
-import { ref, computed } from 'vue'
+import { ref, reactive, watch } from 'vue'
 import { defineStore } from 'pinia'
 import client from '../http/client'
+import { useToastStore } from './toast'
 
 export const useTasksStore = defineStore('tasks', () => {
     const tasks = ref([])
     const loading = ref(false)
 
-    const byStatus = computed(() => ({
-        todo: tasks.value.filter((t) => t.status === 'todo'),
-        in_progress: tasks.value.filter((t) => t.status === 'in_progress'),
-        done: tasks.value.filter((t) => t.status === 'done'),
-    }))
+    // Stable reactive arrays — references never change, contents are spliced in-place.
+    // This allows vuedraggable to hold reliable references for `:list`.
+    const byStatus = reactive({
+        todo: [],
+        in_progress: [],
+        done: [],
+    })
+
+    function syncByStatus() {
+        for (const status of ['todo', 'in_progress', 'done']) {
+            const filtered = tasks.value.filter((t) => t.status === status)
+            byStatus[status].splice(0, byStatus[status].length, ...filtered)
+        }
+    }
+
+    watch(tasks, syncByStatus, { deep: true, immediate: true })
 
     async function fetchTasks(projectId) {
         loading.value = true
@@ -34,6 +46,7 @@ export const useTasksStore = defineStore('tasks', () => {
     async function createTask(projectId, payload) {
         const { data } = await client.post(`/projects/${projectId}/tasks`, payload)
         tasks.value.push(data.data)
+        useToastStore().add('Task created')
         return data.data
     }
 
@@ -42,6 +55,7 @@ export const useTasksStore = defineStore('tasks', () => {
         const task = data.data
         const idx = tasks.value.findIndex((t) => t.id === taskId)
         if (idx !== -1) tasks.value[idx] = task
+        useToastStore().add('Changes saved')
         return task
     }
 
@@ -54,6 +68,7 @@ export const useTasksStore = defineStore('tasks', () => {
     async function deleteTask(projectId, taskId) {
         await client.delete(`/projects/${projectId}/tasks/${taskId}`)
         tasks.value = tasks.value.filter((t) => t.id !== taskId)
+        useToastStore().add('Task deleted')
     }
 
     function clear() {

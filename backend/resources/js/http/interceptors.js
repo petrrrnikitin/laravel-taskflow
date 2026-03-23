@@ -27,18 +27,17 @@ export function setupAuthInterceptors(router) {
         }
         isRefreshing = true
         error.config._retry = true
+        const { useAuthStore } = await import('../stores/auth')
+        const auth = useAuthStore()
         try {
-            const { useAuthStore } = await import('../stores/auth')
-            const auth = useAuthStore()
             await auth.refresh()
-            flushQueue(null, auth.accessToken.value)
+            flushQueue(null, auth.accessToken)
             error.config.headers = error.config.headers ?? {}
-            error.config.headers.Authorization = `Bearer ${auth.accessToken.value}`
+            error.config.headers.Authorization = `Bearer ${auth.accessToken}`
             return client(error.config)
         } catch (e) {
             flushQueue(e, null)
-            const { useAuthStore } = await import('../stores/auth')
-            useAuthStore().clearAuth()
+            auth.clearAuth()
             router.push('/login')
             return Promise.reject(e)
         } finally {
