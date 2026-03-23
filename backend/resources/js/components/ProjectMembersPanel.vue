@@ -52,8 +52,13 @@ async function selectUser(user) {
     if (memberIds.value.has(user.id)) return
     await executeAdd(async (signal) => {
         await client.post(`/projects/${props.projectId}/members`, { user_id: user.id }, { signal })
-        const res = await client.get(`/projects/${props.projectId}/members`, { signal })
-        members.value = res.data.data
+        members.value.push({
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            avatar: user.avatar ?? null,
+            role: 'member',
+        })
     })
 }
 

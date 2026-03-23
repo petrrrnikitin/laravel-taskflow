@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted, onBeforeUnmount } from 'vue'
 import { useRoute, RouterLink } from 'vue-router'
+import draggable from 'vuedraggable'
 import AppLayout from '../layouts/AppLayout.vue'
 import TaskCard from '../components/TaskCard.vue'
 import CreateTaskModal from '../components/CreateTaskModal.vue'
@@ -131,6 +132,25 @@ function startPolling() {
     }, 3_000)
 }
 
+const dragging = ref(false)
+
+async function onDrop(event, targetStatus) {
+    if (!event.added) return
+    const task = event.added.element
+    if (task.status === targetStatus) return
+    if (dragging.value) return
+    dragging.value = true
+    const prevStatus = task.status
+    task.status = targetStatus
+    try {
+        await tasksStore.changeStatus(projectId, task.id, targetStatus)
+    } catch {
+        task.status = prevStatus
+    } finally {
+        dragging.value = false
+    }
+}
+
 async function exportPdf() {
     if (reportState.value === 'generating') return
     reportState.value = 'generating'
@@ -159,7 +179,7 @@ async function exportPdf() {
                 {{ loadError }}
             </p>
 
-            <div class="mb-7 flex items-start justify-between gap-4">
+            <div class="mb-7 flex flex-wrap items-start justify-between gap-4">
                 <template v-if="project">
                     <div>
                         <h1 class="text-2xl font-bold text-gray-900">{{ project.name }}</h1>
@@ -224,7 +244,7 @@ async function exportPdf() {
 
                         <!-- New task -->
                         <button
-                            class="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-blue-700"
+                            class="inline-flex min-w-fit items-center gap-1.5 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-blue-700"
                             @click="showModal = true"
                         >
                             <span class="text-base leading-none">+</span> New task
@@ -293,12 +313,26 @@ async function exportPdf() {
                             }}</span>
                         </div>
 
-                        <TaskCard
-                            v-for="task in tasksStore.byStatus[col.status]"
-                            :key="task.id"
-                            :task="task"
-                            :project-id="projectId"
-                        />
+                        <draggable
+                            :list="tasksStore.byStatus[col.status]"
+                            group="tasks"
+                            item-key="id"
+                            ghost-class="opacity-50"
+                            class="flex flex-col gap-2"
+                            @change="onDrop($event, col.status)"
+                        >
+                            <template #item="{ element }">
+                                <TaskCard :task="element" :project-id="projectId" />
+                            </template>
+                            <template #footer>
+                                <p
+                                    v-if="tasksStore.byStatus[col.status].length === 0"
+                                    class="py-6 text-center text-xs text-gray-400 italic"
+                                >
+                                    No tasks
+                                </p>
+                            </template>
+                        </draggable>
                     </div>
                 </div>
             </div>
