@@ -6,6 +6,7 @@ import TaskForm from '../components/TaskForm.vue'
 import TaskComments from '../components/TaskComments.vue'
 import TaskActivity from '../components/TaskActivity.vue'
 import { useTasksStore } from '../stores/tasks'
+import { useToastStore } from '../stores/toast'
 import { useAuthSubmit } from '../composables/useAuthSubmit'
 import client from '../http/client'
 
@@ -15,6 +16,7 @@ const projectId = Number(route.params.projectId)
 const taskId = Number(route.params.taskId)
 
 const store = useTasksStore()
+const toast = useToastStore()
 const members = ref([])
 
 const task = computed(() => store.tasks.find((t) => t.id === taskId))
@@ -55,8 +57,12 @@ async function setStatus(status) {
 
 async function remove() {
     if (!confirm('Delete this task? This cannot be undone.')) return
-    await store.deleteTask(projectId, taskId)
-    router.push(`/projects/${projectId}`)
+    try {
+        await store.deleteTask(projectId, taskId)
+        router.push(`/projects/${projectId}`)
+    } catch {
+        toast.add('Failed to delete task.', 'error')
+    }
 }
 
 const activeTab = ref('comments')
@@ -126,13 +132,16 @@ onBeforeUnmount(() => abortController?.abort())
                 </div>
 
                 <div class="mb-6">
-                    <div class="inline-flex overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
+                    <div
+                        v-if="task"
+                        class="flex flex-wrap overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm"
+                    >
                         <button
                             v-for="(s, i) in STATUSES"
                             :key="s.value"
-                            class="px-3.5 py-2 text-sm transition-colors"
+                            class="px-2.5 py-2 text-sm transition-colors sm:px-3.5"
                             :class="[
-                                task?.status === s.value
+                                task.status === s.value
                                     ? 'bg-blue-600 font-medium text-white'
                                     : 'text-gray-500 hover:bg-slate-50',
                                 i < STATUSES.length - 1 ? 'border-r border-gray-200' : '',
@@ -142,6 +151,13 @@ onBeforeUnmount(() => abortController?.abort())
                             {{ s.label }}
                         </button>
                     </div>
+                    <div v-else class="h-9 w-56 animate-pulse rounded-lg bg-gray-200"></div>
+                </div>
+
+                <div v-if="!task" class="mb-6 flex gap-2">
+                    <div class="h-6 w-24 animate-pulse rounded-full bg-gray-200"></div>
+                    <div class="h-6 w-28 animate-pulse rounded-full bg-gray-200"></div>
+                    <div class="h-6 w-24 animate-pulse rounded-full bg-gray-200"></div>
                 </div>
 
                 <div v-if="task" class="mb-6 flex flex-wrap gap-2">
@@ -175,6 +191,8 @@ onBeforeUnmount(() => abortController?.abort())
                         <template v-else>Unassigned</template>
                     </span>
                 </div>
+
+                <div v-if="!task" class="mb-7 h-24 animate-pulse rounded-xl bg-gray-100"></div>
 
                 <div v-if="task" class="mb-7">
                     <p

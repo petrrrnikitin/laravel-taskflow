@@ -68,7 +68,7 @@ function select(item) {
             v-if="results.length"
             class="absolute z-10 mt-1 w-full overflow-hidden rounded-lg border border-gray-200 bg-white shadow-lg"
         >
-            <li v-for="(item, i) in results" :key="i" @click="select(item)">
+            <li v-for="item in results" :key="item.id ?? item.email" @click="select(item)">
                 <slot name="result" :item="item" />
             </li>
         </ul>

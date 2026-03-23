@@ -1,6 +1,7 @@
 import { ref } from 'vue'
 import { defineStore } from 'pinia'
 import client from '../http/client'
+import { useToastStore } from './toast'
 
 export const useProjectsStore = defineStore('projects', () => {
     const projects = ref([])
@@ -19,6 +20,7 @@ export const useProjectsStore = defineStore('projects', () => {
     async function createProject(payload) {
         const { data } = await client.post('/projects', payload)
         projects.value.unshift(data.data)
+        useToastStore().add('Project created')
         return data.data
     }
 
@@ -26,11 +28,13 @@ export const useProjectsStore = defineStore('projects', () => {
         await client.post(`/projects/${id}/archive`)
         const project = projects.value.find((p) => p.id === id)
         if (project) project.status = 'archived'
+        useToastStore().add('Project archived')
     }
 
     async function deleteProject(id) {
         await client.delete(`/projects/${id}`)
         projects.value = projects.value.filter((p) => p.id !== id)
+        useToastStore().add('Project deleted')
     }
 
     async function fetchProject(id) {
