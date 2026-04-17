@@ -10,6 +10,7 @@ use App\Exceptions\MemberAlreadyExistsException;
 use App\Models\Project;
 use App\Models\User;
 use App\Repositories\Contracts\ProjectMemberRepositoryInterface;
+use App\Repositories\Contracts\TaskRepositoryInterface;
 use App\Repositories\Contracts\UserRepositoryInterface;
 use App\Services\ProjectMemberService;
 use Illuminate\Database\Eloquent\Collection;
@@ -23,6 +24,8 @@ class ProjectMemberServiceTest extends TestCase
 
     private UserRepositoryInterface&MockInterface $userRepo;
 
+    private TaskRepositoryInterface&MockInterface $taskRepo;
+
     private ProjectMemberService $service;
 
     protected function setUp(): void
@@ -30,6 +33,7 @@ class ProjectMemberServiceTest extends TestCase
         parent::setUp();
         $this->memberRepo = $this->mock(ProjectMemberRepositoryInterface::class);
         $this->userRepo = $this->mock(UserRepositoryInterface::class);
+        $this->taskRepo = $this->mock(TaskRepositoryInterface::class);
         $this->service = app(ProjectMemberService::class);
     }
 
@@ -95,6 +99,21 @@ class ProjectMemberServiceTest extends TestCase
         $member->id = 2;
 
         $this->memberRepo->shouldReceive('remove')->with($project, $member)->once();
+        $this->taskRepo->shouldReceive('unassignUserFromProject')->with($project, $member)->once();
+
+        $this->service->remove($project, $member);
+    }
+
+    public function test_remove_unassigns_member_tasks_in_project(): void
+    {
+        $project = new Project();
+        $project->owner_id = 1;
+
+        $member = new User();
+        $member->id = 3;
+
+        $this->memberRepo->shouldReceive('remove')->with($project, $member)->once();
+        $this->taskRepo->shouldReceive('unassignUserFromProject')->with($project, $member)->once();
 
         $this->service->remove($project, $member);
     }

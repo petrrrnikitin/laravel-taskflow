@@ -41,4 +41,6 @@ interface TaskRepositoryInterface
 
     /** @return BaseCollection<int, object{id: int, name: string, avatar: string|null, closed_tasks_count: int}> */
     public function topAssigneesForProject(Project $project, int $limit): BaseCollection;
+
+    public function unassignUserFromProject(Project $project, User $user): void;
 }

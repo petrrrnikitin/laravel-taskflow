@@ -144,6 +144,15 @@ class EloquentTaskRepository implements TaskRepositoryInterface
             ->count();
     }
 
+    public function unassignUserFromProject(Project $project, User $user): void
+    {
+        Task::query()
+            ->where('project_id', $project->id)
+            ->where('assignee_id', $user->id)
+            ->whereIn('status', [TaskStatus::Todo->value, TaskStatus::InProgress->value])
+            ->update(['assignee_id' => null]);
+    }
+
     /** @return BaseCollection<int, object{id: int, name: string, avatar: string|null, closed_tasks_count: int}> */
     public function topAssigneesForProject(Project $project, int $limit): BaseCollection
     {
