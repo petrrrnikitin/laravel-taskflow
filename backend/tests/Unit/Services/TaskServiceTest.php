@@ -11,10 +11,13 @@ use App\Events\TaskAssigned;
 use App\Events\TaskCreated;
 use App\Events\TaskStatusChanged;
 use App\Events\TaskUpdated;
+use App\Exceptions\AssigneeNotMemberException;
 use App\Models\Project;
 use App\Models\Task;
 use App\Models\User;
+use App\Repositories\Contracts\ProjectMemberRepositoryInterface;
 use App\Repositories\Contracts\TaskRepositoryInterface;
+use App\Repositories\Contracts\UserRepositoryInterface;
 use App\Services\TaskService;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -27,9 +30,15 @@ class TaskServiceTest extends TestCase
 {
     private TaskRepositoryInterface&MockInterface $taskRepo;
 
+    private UserRepositoryInterface&MockInterface $userRepo;
+
+    private ProjectMemberRepositoryInterface&MockInterface $memberRepo;
+
     private TaskService $service;
 
     private User $actor;
+
+    private Project $project;
 
     protected function setUp(): void
     {
@@ -38,11 +47,16 @@ class TaskServiceTest extends TestCase
         config(['cache.stores.redis' => ['driver' => 'array', 'serialize' => false]]);
 
         $this->taskRepo = $this->mock(TaskRepositoryInterface::class);
+        $this->userRepo = $this->mock(UserRepositoryInterface::class);
+        $this->memberRepo = $this->mock(ProjectMemberRepositoryInterface::class);
         $this->service = app(TaskService::class);
 
         $this->actor = new User();
         $this->actor->id = 1;
         $this->actingAs($this->actor);
+
+        $this->project = new Project();
+        $this->project->id = 1;
     }
 
     public function test_get_for_project_returns_collection_from_repository(): void
@@ -105,7 +119,7 @@ class TaskServiceTest extends TestCase
 
         $this->taskRepo->shouldReceive('create')->with($dto)->once()->andReturn($task);
 
-        $this->service->create($dto);
+        $this->service->create($dto, $this->project);
 
         Event::assertDispatched(TaskCreated::class, fn ($e) => $e->task === $task && $e->actor === $this->actor);
     }
@@ -113,6 +127,9 @@ class TaskServiceTest extends TestCase
     public function test_create_dispatches_task_assigned_event_when_assignee_is_set(): void
     {
         Event::fake();
+
+        $assignee = new User();
+        $assignee->id = 2;
 
         $dto = new CreateTaskDTO(
             projectId: 1,
@@ -125,15 +142,14 @@ class TaskServiceTest extends TestCase
             assigneeId: 2,
         );
 
-        $assignee = new User();
-        $assignee->id = 2;
-
         $task = new Task(['project_id' => 1, 'title' => 'Assigned Task', 'creator_id' => 1, 'assignee_id' => 2]);
         $task->setRelation('assignee', $assignee);
 
+        $this->userRepo->shouldReceive('findById')->with(2)->once()->andReturn($assignee);
+        $this->memberRepo->shouldReceive('isMember')->with($this->project, $assignee)->once()->andReturn(true);
         $this->taskRepo->shouldReceive('create')->with($dto)->once()->andReturn($task);
 
-        $this->service->create($dto);
+        $this->service->create($dto, $this->project);
 
         Event::assertDispatched(TaskCreated::class);
         Event::assertDispatched(TaskAssigned::class, fn ($e) => $e->task === $task && $e->assignee === $assignee);
@@ -157,10 +173,54 @@ class TaskServiceTest extends TestCase
 
         $this->taskRepo->shouldReceive('create')->with($dto)->once()->andReturn($task);
 
-        $this->service->create($dto);
+        $this->service->create($dto, $this->project);
 
         Event::assertDispatched(TaskCreated::class);
         Event::assertNotDispatched(TaskAssigned::class);
+    }
+
+    public function test_create_throws_when_assignee_is_not_project_member(): void
+    {
+        $nonMember = new User();
+        $nonMember->id = 99;
+
+        $dto = new CreateTaskDTO(
+            projectId: 1,
+            creatorId: 1,
+            title: 'Task',
+            description: null,
+            status: TaskStatus::Todo,
+            priority: TaskPriority::Medium,
+            dueDate: null,
+            assigneeId: 99,
+        );
+
+        $this->userRepo->shouldReceive('findById')->with(99)->once()->andReturn($nonMember);
+        $this->memberRepo->shouldReceive('isMember')->with($this->project, $nonMember)->once()->andReturn(false);
+
+        $this->expectException(AssigneeNotMemberException::class);
+
+        $this->service->create($dto, $this->project);
+    }
+
+    public function test_create_throws_when_assignee_does_not_exist(): void
+    {
+        $dto = new CreateTaskDTO(
+            projectId: 1,
+            creatorId: 1,
+            title: 'Task',
+            description: null,
+            status: TaskStatus::Todo,
+            priority: TaskPriority::Medium,
+            dueDate: null,
+            assigneeId: 999,
+        );
+
+        $this->userRepo->shouldReceive('findById')->with(999)->once()->andReturn(null);
+
+        $this->expectException(AssigneeNotMemberException::class);
+
+        $this->service->create($dto, $this->project);
     }
 
     public function test_update_dispatches_task_updated_event_when_fields_changed(): void
@@ -181,7 +241,7 @@ class TaskServiceTest extends TestCase
 
         $this->taskRepo->shouldReceive('update')->with($task, $dto)->once()->andReturn($updated);
 
-        $this->service->update($task, $dto);
+        $this->service->update($task, $dto, $this->project);
 
         Event::assertDispatched(TaskUpdated::class, function ($e) use ($updated) {
             return $e->task === $updated && isset($e->changes['title']);
@@ -206,7 +266,7 @@ class TaskServiceTest extends TestCase
 
         $this->taskRepo->shouldReceive('update')->with($task, $dto)->once()->andReturn($updated);
 
-        $this->service->update($task, $dto);
+        $this->service->update($task, $dto, $this->project);
 
         Event::assertNotDispatched(TaskUpdated::class);
     }
@@ -232,11 +292,61 @@ class TaskServiceTest extends TestCase
         $updated->shouldReceive('load')->with('assignee')->andReturnSelf();
         $updated->setRelation('assignee', $assignee);
 
+        $this->userRepo->shouldReceive('findById')->with(2)->once()->andReturn($assignee);
+        $this->memberRepo->shouldReceive('isMember')->with($this->project, $assignee)->once()->andReturn(true);
         $this->taskRepo->shouldReceive('update')->with($task, $dto)->once()->andReturn($updated);
 
-        $this->service->update($task, $dto);
+        $this->service->update($task, $dto, $this->project);
 
         Event::assertDispatched(TaskAssigned::class, fn ($e) => $e->assignee === $assignee);
+    }
+
+    public function test_update_throws_when_new_assignee_is_not_project_member(): void
+    {
+        $task = new Task(['project_id' => 1, 'title' => 'T', 'description' => null, 'priority' => 'medium', 'due_date' => null, 'assignee_id' => null]);
+
+        $nonMember = new User();
+        $nonMember->id = 99;
+
+        $dto = new UpdateTaskDTO(
+            title: 'T',
+            description: null,
+            priority: TaskPriority::Medium,
+            dueDate: null,
+            assigneeId: 99,
+        );
+
+        $this->userRepo->shouldReceive('findById')->with(99)->once()->andReturn($nonMember);
+        $this->memberRepo->shouldReceive('isMember')->with($this->project, $nonMember)->once()->andReturn(false);
+
+        $this->expectException(AssigneeNotMemberException::class);
+
+        $this->service->update($task, $dto, $this->project);
+    }
+
+    public function test_update_does_not_check_membership_when_assignee_is_unchanged(): void
+    {
+        Event::fake();
+
+        $task = new Task(['project_id' => 1, 'title' => 'T', 'description' => null, 'priority' => 'medium', 'due_date' => null, 'assignee_id' => 5]);
+
+        $dto = new UpdateTaskDTO(
+            title: 'T',
+            description: null,
+            priority: TaskPriority::Medium,
+            dueDate: null,
+            assigneeId: 5,
+        );
+
+        $updated = new Task(['project_id' => 1, 'title' => 'T', 'description' => null, 'priority' => 'medium', 'assignee_id' => 5]);
+
+        $this->taskRepo->shouldReceive('update')->with($task, $dto)->once()->andReturn($updated);
+
+        // Guard must not be called when assignee doesn't change
+        $this->userRepo->shouldNotReceive('findById');
+        $this->memberRepo->shouldNotReceive('isMember');
+
+        $this->service->update($task, $dto, $this->project);
     }
 
     public function test_change_status_dispatches_task_status_changed_event(): void
