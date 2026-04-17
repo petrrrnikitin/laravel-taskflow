@@ -10,6 +10,7 @@ use App\Exceptions\MemberAlreadyExistsException;
 use App\Models\Project;
 use App\Models\User;
 use App\Repositories\Contracts\ProjectMemberRepositoryInterface;
+use App\Repositories\Contracts\TaskRepositoryInterface;
 use App\Repositories\Contracts\UserRepositoryInterface;
 use Illuminate\Database\Eloquent\Collection;
 
@@ -18,6 +19,7 @@ readonly class ProjectMemberService
     public function __construct(
         private ProjectMemberRepositoryInterface $members,
         private UserRepositoryInterface $users,
+        private TaskRepositoryInterface $tasks,
     ) {
     }
 
@@ -51,5 +53,6 @@ readonly class ProjectMemberService
         }
 
         $this->members->remove($project, $member);
+        $this->tasks->unassignUserFromProject($project, $member);
     }
 }
