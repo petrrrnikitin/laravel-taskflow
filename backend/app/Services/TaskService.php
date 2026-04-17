@@ -5,6 +5,7 @@ namespace App\Services;
 use App\DTO\Task\CreateTaskDTO;
 use App\DTO\Task\SearchTaskDTO;
 use App\DTO\Task\UpdateTaskDTO;
+use App\Enums\ProjectStatus;
 use App\Enums\TaskPriority;
 use App\Enums\TaskStatus;
 use App\Events\TaskAssigned;
@@ -12,6 +13,7 @@ use App\Events\TaskCreated;
 use App\Events\TaskStatusChanged;
 use App\Events\TaskUpdated;
 use App\Exceptions\AssigneeNotMemberException;
+use App\Exceptions\ProjectArchivedException;
 use App\Models\Project;
 use App\Models\Task;
 use App\Models\User;
@@ -54,6 +56,8 @@ readonly class TaskService
 
     public function create(CreateTaskDTO $dto, Project $project): Task
     {
+        $this->assertProjectIsActive($project);
+
         if ($dto->assigneeId !== null) {
             $this->assertAssigneeIsMember($project, $dto->assigneeId);
         }
@@ -75,6 +79,8 @@ readonly class TaskService
 
     public function update(Task $task, UpdateTaskDTO $dto, Project $project): Task
     {
+        $this->assertProjectIsActive($project);
+
         if ($dto->assigneeId !== null && $dto->assigneeId !== $task->assignee_id) {
             $this->assertAssigneeIsMember($project, $dto->assigneeId);
         }
@@ -102,8 +108,10 @@ readonly class TaskService
         return $updated;
     }
 
-    public function changeStatus(Task $task, TaskStatus $status): Task
+    public function changeStatus(Task $task, TaskStatus $status, Project $project): Task
     {
+        $this->assertProjectIsActive($project);
+
         /** @var TaskStatus $oldStatus */
         $oldStatus = $task->status;
         $actor = Auth::user();
@@ -121,6 +129,16 @@ readonly class TaskService
     public function delete(Task $task): void
     {
         $this->tasks->delete($task);
+    }
+
+    private function assertProjectIsActive(Project $project): void
+    {
+        /** @var ProjectStatus $status */
+        $status = $project->status;
+
+        if ($status === ProjectStatus::Archived) {
+            throw new ProjectArchivedException('Cannot modify tasks in an archived project.');
+        }
     }
 
     private function assertAssigneeIsMember(Project $project, int $assigneeId): void

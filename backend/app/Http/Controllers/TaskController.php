@@ -163,7 +163,7 @@ class TaskController extends Controller
         $this->authorize('update', $task);
 
         return new TaskResource(
-            $this->taskService->changeStatus($task, TaskStatus::from($request->validated('status')))
+            $this->taskService->changeStatus($task, TaskStatus::from($request->validated('status')), $project)
         );
     }
 

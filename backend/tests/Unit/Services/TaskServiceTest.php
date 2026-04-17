@@ -5,6 +5,7 @@ namespace Tests\Unit\Services;
 use App\DTO\Task\CreateTaskDTO;
 use App\DTO\Task\SearchTaskDTO;
 use App\DTO\Task\UpdateTaskDTO;
+use App\Enums\ProjectStatus;
 use App\Enums\TaskPriority;
 use App\Enums\TaskStatus;
 use App\Events\TaskAssigned;
@@ -12,6 +13,7 @@ use App\Events\TaskCreated;
 use App\Events\TaskStatusChanged;
 use App\Events\TaskUpdated;
 use App\Exceptions\AssigneeNotMemberException;
+use App\Exceptions\ProjectArchivedException;
 use App\Models\Project;
 use App\Models\Task;
 use App\Models\User;
@@ -57,6 +59,7 @@ class TaskServiceTest extends TestCase
 
         $this->project = new Project();
         $this->project->id = 1;
+        $this->project->status = ProjectStatus::Active;
     }
 
     public function test_get_for_project_returns_collection_from_repository(): void
@@ -360,13 +363,62 @@ class TaskServiceTest extends TestCase
 
         $this->taskRepo->shouldReceive('changeStatus')->with($task, $newStatus)->once()->andReturn($updatedTask);
 
-        $this->service->changeStatus($task, $newStatus);
+        $this->service->changeStatus($task, $newStatus, $this->project);
 
         Event::assertDispatched(TaskStatusChanged::class, function ($e) use ($updatedTask, $oldStatus, $newStatus) {
             return $e->task === $updatedTask
                 && $e->oldStatus === $oldStatus
                 && $e->newStatus === $newStatus;
         });
+    }
+
+    public function test_create_throws_when_project_is_archived(): void
+    {
+        $archivedProject = new Project();
+        $archivedProject->id = 2;
+        $archivedProject->status = ProjectStatus::Archived;
+
+        $dto = new CreateTaskDTO(
+            projectId: 2,
+            creatorId: 1,
+            assigneeId: null,
+            title: 'Task',
+            description: null,
+            status: TaskStatus::Todo,
+            priority: TaskPriority::Medium,
+            dueDate: null,
+        );
+
+        $this->expectException(ProjectArchivedException::class);
+
+        $this->service->create($dto, $archivedProject);
+    }
+
+    public function test_update_throws_when_project_is_archived(): void
+    {
+        $archivedProject = new Project();
+        $archivedProject->id = 2;
+        $archivedProject->status = ProjectStatus::Archived;
+
+        $task = new Task(['project_id' => 2, 'title' => 'T', 'description' => null, 'priority' => 'medium', 'assignee_id' => null]);
+        $dto = new UpdateTaskDTO(assigneeId: null, title: 'T', description: null, priority: TaskPriority::Medium, dueDate: null);
+
+        $this->expectException(ProjectArchivedException::class);
+
+        $this->service->update($task, $dto, $archivedProject);
+    }
+
+    public function test_change_status_throws_when_project_is_archived(): void
+    {
+        $archivedProject = new Project();
+        $archivedProject->id = 2;
+        $archivedProject->status = ProjectStatus::Archived;
+
+        $task = new Task(['status' => 'todo', 'project_id' => 2]);
+
+        $this->expectException(ProjectArchivedException::class);
+
+        $this->service->changeStatus($task, TaskStatus::InProgress, $archivedProject);
     }
 
     public function test_delete_delegates_to_repository(): void
