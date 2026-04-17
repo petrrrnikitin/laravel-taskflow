@@ -11,10 +11,13 @@ use App\Events\TaskAssigned;
 use App\Events\TaskCreated;
 use App\Events\TaskStatusChanged;
 use App\Events\TaskUpdated;
+use App\Exceptions\AssigneeNotMemberException;
 use App\Models\Project;
 use App\Models\Task;
 use App\Models\User;
+use App\Repositories\Contracts\ProjectMemberRepositoryInterface;
 use App\Repositories\Contracts\TaskRepositoryInterface;
+use App\Repositories\Contracts\UserRepositoryInterface;
 use App\Support\CacheKeys;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -27,6 +30,8 @@ readonly class TaskService
 {
     public function __construct(
         private TaskRepositoryInterface $tasks,
+        private UserRepositoryInterface $users,
+        private ProjectMemberRepositoryInterface $members,
     ) {
     }
 
@@ -47,8 +52,12 @@ readonly class TaskService
         return $this->tasks->search($user, $dto);
     }
 
-    public function create(CreateTaskDTO $dto): Task
+    public function create(CreateTaskDTO $dto, Project $project): Task
     {
+        if ($dto->assigneeId !== null) {
+            $this->assertAssigneeIsMember($project, $dto->assigneeId);
+        }
+
         $task = $this->tasks->create($dto);
         $actor = Auth::user();
         if (!$actor instanceof User) {
@@ -64,8 +73,12 @@ readonly class TaskService
         return $task;
     }
 
-    public function update(Task $task, UpdateTaskDTO $dto): Task
+    public function update(Task $task, UpdateTaskDTO $dto, Project $project): Task
     {
+        if ($dto->assigneeId !== null && $dto->assigneeId !== $task->assignee_id) {
+            $this->assertAssigneeIsMember($project, $dto->assigneeId);
+        }
+
         $oldAssigneeId = $task->assignee_id;
         $actor = Auth::user();
         if (!$actor instanceof User) {
@@ -108,6 +121,15 @@ readonly class TaskService
     public function delete(Task $task): void
     {
         $this->tasks->delete($task);
+    }
+
+    private function assertAssigneeIsMember(Project $project, int $assigneeId): void
+    {
+        $assignee = $this->users->findById($assigneeId);
+
+        if ($assignee === null || !$this->members->isMember($project, $assignee)) {
+            throw new AssigneeNotMemberException('Assignee must be a member of the project.');
+        }
     }
 
     /**

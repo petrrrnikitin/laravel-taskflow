@@ -1,5 +1,6 @@
 <?php
 
+use App\Exceptions\AssigneeNotMemberException;
 use App\Exceptions\CannotRemoveOwnerException;
 use App\Exceptions\InviteeNotFoundException;
 use App\Exceptions\MemberAlreadyExistsException;
@@ -62,5 +63,9 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $exceptions->render(function (ReportNotReadyException $e): JsonResponse {
             return response()->json(['message' => $e->getMessage()], 409);
+        });
+
+        $exceptions->render(function (AssigneeNotMemberException $e): JsonResponse {
+            return response()->json(['message' => $e->getMessage()], 422);
         });
     })->create();

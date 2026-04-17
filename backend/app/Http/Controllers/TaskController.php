@@ -76,7 +76,7 @@ class TaskController extends Controller
     {
         $this->authorize('create', [Task::class, $project]);
 
-        $task = $this->taskService->create(CreateTaskDTO::fromRequest($request, $project->id));
+        $task = $this->taskService->create(CreateTaskDTO::fromRequest($request, $project->id), $project);
 
         return (new TaskResource($task))->response()->setStatusCode(201);
     }
@@ -133,7 +133,7 @@ class TaskController extends Controller
     {
         $this->authorize('update', $task);
 
-        return new TaskResource($this->taskService->update($task, UpdateTaskDTO::fromRequest($request)));
+        return new TaskResource($this->taskService->update($task, UpdateTaskDTO::fromRequest($request), $project));
     }
 
     #[OA\Patch(
