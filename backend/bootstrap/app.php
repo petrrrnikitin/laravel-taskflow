@@ -4,6 +4,7 @@ use App\Exceptions\AssigneeNotMemberException;
 use App\Exceptions\CannotRemoveOwnerException;
 use App\Exceptions\InviteeNotFoundException;
 use App\Exceptions\MemberAlreadyExistsException;
+use App\Exceptions\ProjectArchivedException;
 use App\Exceptions\ReportNotReadyException;
 use App\Http\Middleware\EnsureUserBelongsToProject;
 use App\Http\Middleware\ForceJsonResponse;
@@ -67,5 +68,9 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $exceptions->render(function (AssigneeNotMemberException $e): JsonResponse {
             return response()->json(['message' => $e->getMessage()], 422);
+        });
+
+        $exceptions->render(function (ProjectArchivedException $e): JsonResponse {
+            return response()->json(['message' => $e->getMessage()], 409);
         });
     })->create();
